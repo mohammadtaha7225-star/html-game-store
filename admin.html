@@ -80,7 +80,7 @@ $("publish").addEventListener("click",async()=>{
   }
   say("فایل‌ها آپلود شدند؛ در حال به‌روزرسانی فهرست فروشگاه…");
   let db={version:1,games:[]},sha=null;
-  try{const old=await api("database/games.json");sha=old.sha;db=JSON.parse(atob(old.content.replace(/\n/g,"")));}catch(e){if(!String(e.message).includes("Not Found"))throw e;}
+  try{const old=await api("database/games.json");sha=old.sha;const raw=atob(old.content.replace(/\n/g,""));const bytes=Uint8Array.from(raw,c=>c.charCodeAt(0));db=JSON.parse(new TextDecoder().decode(bytes));}catch(e){if(!String(e.message).includes("Not Found"))throw e;}
   db.games=Array.isArray(db.games)?db.games:[];
   db.games.push({id,title,description,path:gamePath,url:gamePath,...(imagePath?{image:imagePath}:{})});
   await putFile("database/games.json",bytesToBase64(new TextEncoder().encode(JSON.stringify(db,null,2))),"انتشار بازی "+title,sha);
