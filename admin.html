@@ -17,8 +17,8 @@ a{color:#c4b5fd}.danger{color:#fca5a5}.hint{font-size:13px;color:#cbd5e1}
 <main>
 <section class="card">
 <h2>۱. اتصال به GitHub</h2>
-<p class="hint">برای اینکه این پنل بتواند فایل‌ها را در مخزن تو قرار دهد، یک توکن لازم است. توکن را فقط در همین کادر وارد کن؛ در سایت ذخیره نمی‌شود و داخل فایل‌های مخزن قرار نمی‌گیرد.</p>
-<label for="token">توکن GitHub</label><input id="token" type="password" autocomplete="off" placeholder="github_pat_...">
+<p class="hint">توکن فقط روی همین گوشی و در حافظه مرورگر ذخیره می‌شود، اگر گزینه ذخیره را فعال کنی. آن را در فایل‌های عمومی مخزن قرار نمی‌دهیم.</p>
+<label for="token">توکن GitHub</label><input id="token" type="password" autocomplete="off" placeholder="github_pat_..."><label style="display:flex;align-items:center;gap:9px;font-weight:normal"><input id="rememberToken" type="checkbox" style="width:auto"> ذخیره توکن در همین گوشی</label><button type="button" id="clearToken" style="background:#334155">پاک کردن توکن ذخیره‌شده</button><p class="hint">این روش راحت‌تر است، اما اگر کسی به گوشی یا مرورگر بازشده‌ات دسترسی پیدا کند ممکن است به توکن هم دسترسی پیدا کند. روی گوشی مشترک فعالش نکن.</p>
 <p class="hint">توکن Fine-grained بساز و فقط دسترسی Contents را روی Read and write برای مخزن html-game-store فعال کن.</p>
 <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">ساخت توکن در GitHub</a>
 </section>
@@ -42,6 +42,34 @@ a{color:#c4b5fd}.danger{color:#fca5a5}.hint{font-size:13px;color:#cbd5e1}
 const OWNER="mohammadtaha7225-star", REPO="html-game-store", BRANCH="main";
 const $=id=>document.getElementById(id), status=$("status"), button=$("publish");
 function say(s){status.textContent=s}
+const TOKEN_KEY="htmlGameStorePublisherToken";
+try{
+ const saved=localStorage.getItem(TOKEN_KEY);
+ if(saved){$("token").value=saved;$("rememberToken").checked=true;}
+}catch(e){}
+$("rememberToken").addEventListener("change",()=>{
+ try{
+  if($("rememberToken").checked){
+   const value=$("token").value.trim();
+   if(!value){$("rememberToken").checked=false;say("اول توکن را وارد کن، بعد گزینه ذخیره را فعال کن.");return;}
+   localStorage.setItem(TOKEN_KEY,value);
+   say("توکن روی همین گوشی ذخیره شد.");
+  }else{
+   localStorage.removeItem(TOKEN_KEY);
+   say("ذخیره توکن خاموش شد و توکن ذخیره‌شده پاک شد.");
+  }
+ }catch(e){$("rememberToken").checked=false;say("مرورگر اجازه ذخیره‌سازی نداد.");}
+});
+$("token").addEventListener("input",()=>{
+ if($("rememberToken").checked){
+  try{localStorage.setItem(TOKEN_KEY,$("token").value.trim());}catch(e){}
+ }
+});
+$("clearToken").addEventListener("click",()=>{
+ try{localStorage.removeItem(TOKEN_KEY);}catch(e){}
+ $("token").value="";$("rememberToken").checked=false;
+ say("توکن ذخیره‌شده از این گوشی پاک شد.");
+});
 function slug(s){return s.toLowerCase().trim().replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-|-$/g,"").slice(0,45)||"game"}
 function bytesToBase64(bytes){let binary="";const step=0x8000;for(let i=0;i<bytes.length;i+=step)binary+=String.fromCharCode(...bytes.subarray(i,i+step));return btoa(binary)}
 async function api(path,method="GET",body=null){
