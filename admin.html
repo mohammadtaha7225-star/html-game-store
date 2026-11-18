@@ -1,1 +1,92 @@
-<!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>راهنمای مدیریت فروشگاه</title><style>body{font-family:Tahoma;background:#0b1020;color:#fff;max-width:720px;margin:35px auto;padding:20px;line-height:2}a{color:#c4b5fd}.box{background:#172033;padding:18px;border-radius:14px}</style><h1>مدیریت فروشگاه HTML</h1><div class="box"><p>برای انتشار بازی فعلاً از بخش فایل‌های مخزن GitHub استفاده کن:</p><ol><li>فایل بازی را در مسیر <b>games/نام-بازی/index.html</b> بارگذاری کن.</li><li>فایل <b>database/games.json</b> را ویرایش کن و مشخصات بازی را به آرایه games اضافه کن.</li><li>پس از چند لحظه بازی در فروشگاه نمایش داده می‌شود.</li></ol><p>نمونه رکورد:</p><pre>{"id":"game1","title":"نام بازی","description":"توضیح بازی","path":"games/game1/index.html"}</pre><a href="./">بازگشت به فروشگاه</a></div></html>
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111827"><title>مدیریت فروشگاه HTML</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0b1020;color:#f8fafc;font-family:Tahoma,Arial,sans-serif;line-height:1.9}
+header{padding:25px 18px;background:linear-gradient(135deg,#312e81,#0f172a)}main{max-width:760px;margin:auto;padding:18px}
+h1{font-size:24px;margin:0}p{color:#cbd5e1}.card{background:#151d31;border:1px solid #334155;border-radius:16px;padding:18px;margin:16px 0}
+label{display:block;margin:12px 0 5px;font-weight:bold}input,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid #475569;background:#0b1222;color:white;font:inherit}
+input[type=file]{padding:9px}button{border:0;border-radius:10px;padding:12px 17px;background:#7c3aed;color:white;font-weight:bold;font:inherit;cursor:pointer;width:100%;margin-top:14px}
+button:disabled{opacity:.55}.muted{font-size:13px;color:#94a3b8}.status{padding:12px;background:#111827;border:1px solid #334155;border-radius:12px;white-space:pre-wrap;margin-top:12px}
+a{color:#c4b5fd}.danger{color:#fca5a5}.hint{font-size:13px;color:#cbd5e1}
+</style></head>
+<body>
+<header><main><h1>🛠️ پنل مدیریت فروشگاه</h1><p>بازی HTML را از گوشی انتخاب کن و به فروشگاه اضافه کن.</p></main></header>
+<main>
+<section class="card">
+<h2>۱. اتصال به GitHub</h2>
+<p class="hint">برای اینکه این پنل بتواند فایل‌ها را در مخزن تو قرار دهد، یک توکن لازم است. توکن را فقط در همین کادر وارد کن؛ در سایت ذخیره نمی‌شود و داخل فایل‌های مخزن قرار نمی‌گیرد.</p>
+<label for="token">توکن GitHub</label><input id="token" type="password" autocomplete="off" placeholder="github_pat_...">
+<p class="hint">توکن Fine-grained بساز و فقط دسترسی Contents را روی Read and write برای مخزن html-game-store فعال کن.</p>
+<a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">ساخت توکن در GitHub</a>
+</section>
+<section class="card">
+<h2>۲. مشخصات بازی</h2>
+<label for="title">نام بازی</label><input id="title" maxlength="70" placeholder="مثلاً ماشین‌سواری سه‌بعدی">
+<label for="description">توضیحات بازی</label><textarea id="description" rows="3" maxlength="250" placeholder="چند کلمه درباره بازی بنویس"></textarea>
+<label for="game">فایل بازی (فقط HTML)</label><input id="game" type="file" accept=".html,text/html">
+<p class="muted">فعلاً نسخه اول پنل فقط بازی تک‌فایلی HTML را پشتیبانی می‌کند. حجم پیشنهادی کمتر از ۲۰ مگابایت است.</p>
+<label for="cover">تصویر جلد (اختیاری)</label><input id="cover" type="file" accept="image/png,image/jpeg,image/webp">
+<button id="publish">🚀 انتشار بازی در فروشگاه</button>
+<div id="status" class="status">آماده انتشار بازی هستیم.</div>
+</section>
+<section class="card">
+<h2>راهنما</h2>
+<p>بعد از انتشار موفق، بازی در فروشگاه اصلی نمایش داده می‌شود. ممکن است به‌روزرسانی صفحه فروشگاه چند دقیقه طول بکشد.</p>
+<a href="./">بازگشت به فروشگاه اصلی</a>
+</section>
+</main>
+<script>
+const OWNER="mohammadtaha7225-star", REPO="html-game-store", BRANCH="main";
+const $=id=>document.getElementById(id), status=$("status"), button=$("publish");
+function say(s){status.textContent=s}
+function slug(s){return s.toLowerCase().trim().replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-|-$/g,"").slice(0,45)||"game"}
+function bytesToBase64(bytes){let binary="";const step=0x8000;for(let i=0;i<bytes.length;i+=step)binary+=String.fromCharCode(...bytes.subarray(i,i+step));return btoa(binary)}
+async function api(path,method="GET",body=null){
+ const token=$("token").value.trim();if(!token)throw Error("اول توکن GitHub را وارد کن.");
+ const res=await fetch("https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/"+path+(method==="GET"?"?ref="+BRANCH:""),{
+  method,headers:{"Accept":"application/vnd.github+json","Authorization":"Bearer "+token,"X-GitHub-Api-Version":"2022-11-28","Content-Type":"application/json"},
+  body:body?JSON.stringify(body):undefined
+ });
+ const data=await res.json().catch(()=>({}));
+ if(!res.ok)throw Error(data.message||("خطای GitHub: "+res.status));
+ return data;
+}
+async function putFile(path,content,message,sha){
+ const body={message,content,branch:BRANCH};if(sha)body.sha=sha;
+ return api(path,"PUT",body);
+}
+$("publish").addEventListener("click",async()=>{
+ button.disabled=true;
+ try{
+  const title=$("title").value.trim(),description=$("description").value.trim(),game=$("game").files[0],cover=$("cover").files[0];
+  if(!title)throw Error("نام بازی را وارد کن.");
+  if(!game)throw Error("فایل HTML بازی را انتخاب کن.");
+  if(!game.name.toLowerCase().endsWith(".html"))throw Error("فعلاً فقط فایل با پسوند .html قابل قبول است.");
+  if(game.size>20*1024*1024)throw Error("حجم فایل بیشتر از ۲۰ مگابایت است؛ فعلاً فایل کوچک‌تری انتخاب کن.");
+  const id=slug(title)+"-"+Date.now().toString().slice(-6);
+  say("در حال آماده‌سازی فایل بازی…");
+  const gameBytes=new Uint8Array(await game.arrayBuffer());
+  const gamePath="games/"+id+"/index.html";
+  await putFile(gamePath,bytesToBase64(gameBytes),"افزودن بازی "+title);
+  let imagePath="";
+  if(cover){
+   say("فایل بازی ثبت شد؛ در حال بارگذاری تصویر جلد…");
+   const ext=(cover.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
+   imagePath="images/"+id+"."+ext;
+   await putFile(imagePath,bytesToBase64(new Uint8Array(await cover.arrayBuffer())),"افزودن تصویر بازی "+title);
+  }
+  say("فایل‌ها آپلود شدند؛ در حال به‌روزرسانی فهرست فروشگاه…");
+  let db={version:1,games:[]},sha=null;
+  try{const old=await api("database/games.json");sha=old.sha;db=JSON.parse(atob(old.content.replace(/\n/g,"")));}catch(e){if(!String(e.message).includes("Not Found"))throw e;}
+  db.games=Array.isArray(db.games)?db.games:[];
+  db.games.push({id,title,description,path:gamePath,url:gamePath,...(imagePath?{image:imagePath}:{})});
+  await putFile("database/games.json",bytesToBase64(new TextEncoder().encode(JSON.stringify(db,null,2))),"انتشار بازی "+title,sha);
+  say("✅ بازی با موفقیت منتشر شد!\nنام: "+title+"\nاکنون فروشگاه را باز کن و صفحه را تازه‌سازی کن.\n\nاگر بازی بلافاصله دیده نشد، چند دقیقه صبر کن.");
+ }catch(e){say("❌ "+e.message+"\n\nاگر خطای 401 یا 403 دیدی، دسترسی توکن را بررسی کن. اگر خطای 409 دیدی، دوباره تلاش کن.");}
+ finally{button.disabled=false;}
+});
+</script>
+</body></html>
