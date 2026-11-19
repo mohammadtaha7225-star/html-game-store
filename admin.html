@@ -85,9 +85,15 @@ function renderGames(){
 function startEdit(id){
  const g=gamesCache.find(x=>x.id===id);if(!g)return;editingId=id;$("title").value=g.title||"";$("description").value=g.description||"";$("game").value="";$("publish").textContent="💾 ذخیره تغییرات";say("در حال ویرایش: "+(g.title||id)+". اگر فایل HTML جدید انتخاب نکنی، فایل فعلی دست‌نخورده می‌ماند.");window.scrollTo({top:0,behavior:"smooth"});
 }
+function cleanRepoPath(path){
+ let value=String(path||"");
+ while(value.startsWith("/"))value=value.slice(1);
+ while(value.startsWith("./"))value=value.slice(2);
+ return value;
+}
 async function deleteRemoteFile(path){
  if(!path)return;
- const clean=String(path).replace(/^\\/+|^\\.\\//g,"");
+ const clean=cleanRepoPath(path);
  if(clean.includes(".."))throw Error("مسیر فایل نامعتبر است.");
  try{
   const f=await api(clean);
@@ -110,8 +116,8 @@ async function cleanupOrphans(){
  setBusy(true);$("cleanupOrphans").disabled=true;
  try{
   const db=await readDB();
-  const usedGames=new Set(db.games.map(g=>String(g.path||g.url||"").replace(/^\\/+|^\\.\\//g,"")).filter(Boolean));
-  const usedImages=new Set(db.games.map(g=>String(g.image||"").replace(/^\\/+|^\\.\\//g,"")).filter(Boolean));
+  const usedGames=new Set(db.games.map(g=>cleanRepoPath(g.path||g.url||"")).filter(Boolean));
+  const usedImages=new Set(db.games.map(g=>cleanRepoPath(g.image||"")).filter(Boolean));
   const [gameFiles,imageFiles]=await Promise.all([listFilesRecursive("games"),listFilesRecursive("images")]);
   const staleGames=gameFiles.filter(p=>p.split("/").pop().toLowerCase()==="index.html"&&!usedGames.has(p));
   const staleImages=imageFiles.filter(p=>!usedImages.has(p));
