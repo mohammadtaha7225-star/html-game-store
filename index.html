@@ -1,44 +1,71 @@
 <!doctype html>
-<html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#111827"><title>فروشگاه HTML</title><link rel="manifest" href="manifest.json"><style>
-*{box-sizing:border-box}body{margin:0;background:#0b1020;color:#f8fafc;font-family:Tahoma,Arial,sans-serif}header{padding:26px 18px;background:linear-gradient(135deg,#312e81,#0f172a)}h1{margin:0 0 8px;font-size:26px}.wrap{max-width:900px;margin:auto;padding:18px}.muted{color:#a5b4fc;font-size:14px}.status{padding:12px;border:1px solid #334155;border-radius:12px;margin:12px 0;background:#111827}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}.game{background:#151d31;border:1px solid #293449;border-radius:16px;padding:16px}.game h3{margin:0 0 8px}.btn{border:0;border-radius:10px;padding:11px 15px;background:#7c3aed;color:white;font-weight:bold;cursor:pointer;margin:5px 0 0 5px}.btn.alt{background:#334155}.empty{text-align:center;padding:30px;color:#94a3b8}a{color:#c4b5fd}
-</style></head><body><header><div class="wrap"><h1>🎮 فروشگاه HTML</h1><div class="muted">بازی‌ها را دریافت کن و حتی بدون اینترنت اجرا کن.</div></div></header><main class="wrap"><div id="status" class="status">در حال باز کردن فروشگاه…</div><div id="games" class="grid"></div><p class="muted">برای دیدن بازی‌های تازه، اینترنت را روشن کن و صفحه را تازه‌سازی کن.</p></main>
+<html lang="fa" dir="rtl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#100d2a"><meta name="description" content="فروشگاه بازی‌های HTML؛ دریافت و اجرای بازی‌ها حتی بدون اینترنت.">
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>GAME STORE | فروشگاه بازی</title>
+<style>
+:root{color-scheme:dark;--bg:#090d1d;--panel:#141a31;--line:#2a3152;--muted:#aab3d4;--purple:#8b43ff;--cyan:#19dfff;--pink:#f34fff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 85% -10%,#39206d 0,transparent 38%),radial-gradient(ellipse at 0 35%,#102d59 0,transparent 32%),var(--bg);color:#f8f8ff;font-family:Tahoma,Arial,sans-serif;min-height:100vh}
+header{position:relative;overflow:hidden;padding:28px 16px 24px;background:linear-gradient(120deg,#20104b,#111a3b 58%,#082f55);border-bottom:1px solid #45407a}
+header:after{content:"";position:absolute;width:260px;height:260px;border:1px solid #8a52ff66;border-radius:50%;left:-80px;top:-120px;box-shadow:0 0 70px #713cff55}
+.wrap{max-width:1050px;margin:auto;padding:18px}.brand{display:flex;align-items:center;gap:14px;position:relative;z-index:1}.logo{width:76px;height:76px;filter:drop-shadow(0 0 16px #883eff88)}h1{font-size:clamp(23px,5vw,34px);margin:0 0 7px;letter-spacing:.4px}.subtitle{color:#c5c9ed;font-size:13px;line-height:1.8}.head-actions{display:flex;gap:8px;margin-top:17px;flex-wrap:wrap}
+.pill,.btn,.chip{border:1px solid #4a4b80;border-radius:12px;padding:10px 14px;background:#211c45;color:#fff;font-weight:bold;text-decoration:none;cursor:pointer}.pill{font-size:12px}.pill.primary,.btn.primary{background:linear-gradient(100deg,#8139f4,#4c67ff);border:0;box-shadow:0 5px 18px #6b3cff44}
+main.wrap{padding-top:20px}.notice{border:1px solid #343d66;background:#111a31d9;border-radius:14px;padding:12px 14px;color:#c9d2f4;font-size:13px;line-height:1.8;margin-bottom:20px}
+.searchrow{display:flex;gap:10px;margin:18px 0 14px}.search{width:100%;border:1px solid #343d63;border-radius:14px;padding:15px 16px;background:#0f162b;color:#fff;font:inherit;outline:none}.search:focus{border-color:var(--cyan);box-shadow:0 0 0 3px #19dfff1c}
+.chips{display:flex;gap:8px;overflow:auto;padding:2px 0 12px;scrollbar-width:thin}.chip{white-space:nowrap;font-size:12px;background:#151b32;border-color:#303858}.chip.active{background:linear-gradient(100deg,#7835df,#1b83c9);border-color:transparent}
+.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:22px 0 12px}.section-head h2{font-size:18px;margin:0}.section-head small{color:#9da9d0;font-size:11px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:13px}.card{background:linear-gradient(145deg,#171e37,#101629);border:1px solid #303a5c;border-radius:18px;padding:13px;box-shadow:0 12px 26px #0003;min-width:0;transition:transform .2s,border-color .2s}.card:hover{transform:translateY(-3px);border-color:#8051d9}
+.art{height:112px;border-radius:13px;margin-bottom:12px;display:grid;place-items:center;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 50%,#44317d,#171a3b 65%,#10172c)}.art:before,.art:after{content:"";position:absolute;border:1px solid #20dfff66;width:125px;height:125px;transform:rotate(35deg);border-radius:25px}.art:after{border-color:#e44fff66;transform:rotate(-35deg);width:85px;height:85px}.art span{font-size:46px;filter:drop-shadow(0 0 12px #a34cff);z-index:1}
+.card h3{font-size:16px;margin:0 0 7px;overflow-wrap:anywhere}.desc{color:#aeb9d8;font-size:12px;line-height:1.8;min-height:42px;margin:0 0 10px}.meta{font-size:11px;color:#8794bd;display:flex;justify-content:space-between;gap:6px;margin:8px 0}
+.actions{display:flex;gap:8px}.btn{flex:1;font-size:12px;padding:11px 8px}.btn.alt{background:#27314b;border-color:#3d4b70}.btn:disabled{opacity:.6;cursor:wait}
+.empty{grid-column:1/-1;text-align:center;padding:34px 15px;border:1px dashed #475077;border-radius:17px;color:#aab4d4;background:#11172b}
+footer{text-align:center;color:#7784aa;font-size:11px;padding:35px 15px 28px}a{color:#bba5ff}
+@media(max-width:520px){.wrap{padding:14px}.logo{width:64px;height:64px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.card{padding:10px}.art{height:88px}.card h3{font-size:14px}.desc{font-size:11px}.btn{font-size:11px;padding:10px 5px}.head-actions .pill{flex:1;text-align:center}}
+</style></head><body>
+<header><div class="wrap">
+<div class="brand"><img class="logo" src="icon.svg" alt="لوگوی فروشگاه"><div><h1>GAME STORE</h1><div class="subtitle">فروشگاه بازی‌های HTML · دنیای بازی همیشه همراه تو</div></div></div>
+<div class="head-actions"><span class="pill primary">🎮 بازی کن، هرجا که هستی</span><span class="pill">⚡ دریافت سریع</span><span class="pill">📴 اجرای آفلاین</span></div>
+</div></header>
+<main class="wrap">
+<div id="status" class="notice">در حال بارگذاری فروشگاه…</div>
+<div class="searchrow"><input id="search" class="search" type="search" placeholder="🔎 اسم بازی یا توضیحاتش را جست‌وجو کن…" autocomplete="off"></div>
+<nav id="categories" class="chips" aria-label="دسته‌بندی بازی‌ها"></nav>
+<section><div class="section-head"><h2>🔥 بازی‌های محبوب</h2><small>بر اساس تعداد دریافت در همین دستگاه</small></div><div id="popular" class="grid"></div></section>
+<section><div class="section-head"><h2>🆕 تازه‌منتشرشده‌ها</h2><small>آخرین بازی‌های فروشگاه</small></div><div id="latest" class="grid"></div></section>
+<section><div class="section-head"><h2>🎮 همهٔ بازی‌ها</h2><small id="count"></small></div><div id="all" class="grid"></div></section>
+</main><footer>GAME STORE · ساخته‌شده برای عاشقان بازی<br><a href="admin.html">ورود به پنل مدیریت</a></footer>
 <script>
-const GAME_CACHE='html-game-files-v1';
-const status=document.getElementById('status'),root=document.getElementById('games');
+const GAME_CACHE='html-game-files-v1',DOWNLOAD_KEY='gs_download_counts_v2';
+const $=id=>document.getElementById(id),status=$('status');let allGames=[],category='همه',query='';
+const icons=['🎮','🏎️','🧱','🚀','🧩','⚔️','🌌','🏁','🕹️'];
 function gameUrl(g){return new URL(g.url||g.path,location.href).href}
-async function isCached(g){return !!(await caches.open(GAME_CACHE)).match(gameUrl(g))}
-async function runGame(g){
- const cache=await caches.open(GAME_CACHE),url=gameUrl(g),response=await cache.match(url);
- if(!response){alert('اول بازی را با اینترنت دریافت کن.');return}
- const html=await response.text(),blob=new Blob([html],{type:'text/html'}),blobUrl=URL.createObjectURL(blob);
- const w=window.open(blobUrl,'_blank');if(!w){URL.revokeObjectURL(blobUrl);alert('اجازه بازشدن پنجره را بده.');}
+function counts(){try{return JSON.parse(localStorage.getItem(DOWNLOAD_KEY)||'{}')}catch(e){return {}}}
+function countFor(g){return Number(counts()[g.id]||0)}
+function categoryOf(g){return g.category||'متفرقه'}
+function sortedLatest(a,b){return Number(b.createdAt||0)-Number(a.createdAt||0)}
+function makeCard(g,index){
+ const card=document.createElement('article');card.className='card';
+ const cat=categoryOf(g),cachedPromise=caches.open(GAME_CACHE).then(c=>c.match(gameUrl(g)));
+ card.innerHTML='<div class="art"><span>'+icons[index%icons.length]+'</span></div><h3></h3><p class="desc"></p><div class="meta"><span class="cat"></span><span class="downloads"></span></div><div class="actions"><button class="btn primary get">دریافت</button><button class="btn alt play">اجرا</button></div>';
+ card.querySelector('h3').textContent=g.title||'بازی بدون نام';card.querySelector('.desc').textContent=g.description||'یک بازی HTML آمادهٔ تجربه.';card.querySelector('.cat').textContent='▸ '+cat;card.querySelector('.downloads').textContent='⬇ '+countFor(g)+' دریافت';
+ const get=card.querySelector('.get'),play=card.querySelector('.play');
+ cachedPromise.then(r=>{if(r)get.textContent='دریافت‌شده ✓'}).catch(()=>{});
+ get.onclick=async()=>{try{get.disabled=true;get.textContent='در حال دریافت…';const r=await fetch(gameUrl(g),{cache:'no-store'});if(!r.ok)throw Error('دانلود ناموفق');const cache=await caches.open(GAME_CACHE);await cache.put(gameUrl(g),r.clone());const c=counts();c[g.id]=Number(c[g.id]||0)+1;localStorage.setItem(DOWNLOAD_KEY,JSON.stringify(c));get.textContent='دریافت‌شده ✓';card.querySelector('.downloads').textContent='⬇ '+countFor(g)+' دریافت';renderPopular();status.textContent='بازی «'+(g.title||'')+'» دریافت شد و برای اجرای آفلاین ذخیره شد.';}catch(e){get.textContent='دریافت';alert('دریافت بازی ناموفق بود. اتصال اینترنت را بررسی کن.');}finally{get.disabled=false}};
+ play.onclick=async()=>{try{const cache=await caches.open(GAME_CACHE),response=await cache.match(gameUrl(g));if(!response){alert('برای اجرای بازی، اول آن را دریافت کن.');return}const blob= new Blob([await response.text()],{type:'text/html'}),url=URL.createObjectURL(blob),w=window.open(url,'_blank');if(!w){URL.revokeObjectURL(url);alert('اجازه بازشدن پنجره را بده.')}}catch(e){alert('اجرای بازی ممکن نشد.')}};
+ return card;
 }
+function filtered(){return allGames.filter(g=>(category==='همه'||categoryOf(g)===category)&&((g.title||'')+' '+(g.description||'')).toLowerCase().includes(query.toLowerCase()))}
+function renderCategories(){const cats=['همه',...new Set(allGames.map(categoryOf))];$('categories').innerHTML='';cats.forEach(c=>{const b=document.createElement('button');b.className='chip'+(c===category?' active':'');b.textContent=c;b.onclick=()=>{category=c;render()};$('categories').append(b)})}
+function renderList(id,items){const root=$(id);root.innerHTML='';if(!items.length){root.innerHTML='<div class="empty">بازی‌ای برای نمایش پیدا نشد.</div>';return}items.forEach((g,i)=>root.append(makeCard(g,i)))}
+function renderPopular(){const popular=[...allGames].sort((a,b)=>countFor(b)-countFor(a)).slice(0,4);renderList('popular',popular)}
+function render(){renderCategories();const games=filtered().sort(sortedLatest);$('count').textContent=games.length+' بازی';renderList('all',games);renderList('latest',games.slice(0,4));renderPopular()}
 async function load(){
- let games=[];
- try{
-  const r=await fetch('database/games.json',{cache:'no-cache'});
-  if(!r.ok)throw Error('فهرست در دسترس نیست');
-  const data=await r.json();games=data.games||[];
-  status.textContent='فهرست بازی‌ها به‌روز شد. برای اجرای آفلاین، بازی را یک‌بار دریافت کن.';
- }catch(e){status.textContent='اینترنت در دسترس نیست؛ فهرست ذخیره‌شده و بازی‌های قبلی را نشان می‌دهیم.';}
- if(!games.length){root.innerHTML='<div class="empty">هنوز بازی‌ای منتشر نشده است یا فهرست هنوز ذخیره نشده.</div>';return}
- root.innerHTML='';
- for(const g of games){
-  const cached=await isCached(g),card=document.createElement('section');card.className='game';
-  card.innerHTML='<h3></h3><p class="muted"></p><button class="btn"></button><button class="btn alt">اجرا</button>';
-  card.querySelector('h3').textContent=g.title||'بازی';card.querySelector('p').textContent=g.description||'بازی HTML';
-  const b=card.querySelector('.btn');b.textContent=cached?'دریافت دوباره':'دریافت بازی';
-  b.onclick=async()=>{
-   try{b.disabled=true;b.textContent='در حال دریافت…';
-    const response=await fetch(gameUrl(g),{cache:'no-store'});if(!response.ok)throw Error('دانلود ناموفق');
-    const cache=await caches.open(GAME_CACHE);await cache.put(gameUrl(g),response.clone());
-    b.textContent='دریافت شد ✓';alert('بازی در کش برنامه ذخیره شد و آفلاین هم اجرا می‌شود.');
-   }catch(e){b.textContent='دریافت بازی';alert('دریافت ناموفق بود؛ اینترنت را بررسی کن.');}
-   finally{b.disabled=false;}
-  };
-  card.querySelector('.alt').onclick=()=>runGame(g);root.append(card);
- }
+ try{const r=await fetch('database/games.json',{cache:'no-store'});if(!r.ok)throw Error('فهرست دریافت نشد');const d=await r.json();allGames=Array.isArray(d.games)?d.games:[];status.textContent='فروشگاه به‌روز است. برای اجرای آفلاین، بازی را یک‌بار دریافت کن.';}
+ catch(e){status.textContent='اتصال اینترنت برقرار نیست؛ بازی‌های قبلاً دریافت‌شده همچنان در حافظهٔ گوشی باقی می‌مانند.';}
+ render();
 }
-if('serviceWorker'in navigator){addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
-load().catch(e=>status.textContent='خطا: '+e.message);
+$('search').addEventListener('input',e=>{query=e.target.value;const games=filtered().sort(sortedLatest);$('count').textContent=games.length+' بازی';renderList('all',games)});
+if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+load();
 </script></body></html>
