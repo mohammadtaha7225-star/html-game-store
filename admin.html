@@ -32,6 +32,7 @@ a{color:#c4b5fd}.danger{background:#991b1b}.secondary{background:#334155}.succes
 <div class="topline"><h2>۲. افزودن بازی جدید</h2><button type="button" id="resetForm" class="secondary">پاک کردن فرم ↻</button></div>
 <label for="title">نام بازی</label><input id="title" maxlength="70" placeholder="مثلاً ماشین‌سواری سه‌بعدی">
 <label for="description">توضیحات بازی</label><textarea id="description" rows="3" maxlength="250" placeholder="چند کلمه درباره بازی بنویس"></textarea>
+<label for="category">دسته‌بندی بازی</label><select id="category"><option>متفرقه</option><option>ماشینی</option><option>سه‌بعدی</option><option>ماجراجویی</option><option>فکری</option><option>اکشن</option><option>شبیه‌سازی</option><option>ورزشی</option></select>
 <label for="game">فایل بازی (فقط HTML)</label><input id="game" type="file" accept=".html,text/html">
 <p class="muted">فقط بازی تک‌فایلی HTML پشتیبانی می‌شود. تصویر جلد لازم نیست و دیگر آپلود تصویر نداریم.</p>
 <button id="publish">🚀 انتشار بازی</button>
@@ -57,7 +58,7 @@ $("rememberToken").addEventListener("change",()=>{try{if($("rememberToken").chec
 $("token").addEventListener("input",()=>{if($("rememberToken").checked){try{localStorage.setItem(TOKEN_KEY,$("token").value.trim());}catch(e){}}});
 $("clearToken").addEventListener("click",()=>{try{localStorage.removeItem(TOKEN_KEY);}catch(e){}$("token").value="";$("rememberToken").checked=false;say("توکن ذخیره‌شده پاک شد.");});
 $("resetForm").addEventListener("click",resetForm);
-function resetForm(){ $("title").value="";$("description").value="";$("game").value="";editingId=null;$("publish").textContent="🚀 انتشار بازی";say("فرم کاملاً پاک شد؛ می‌توانی بازی جدیدی وارد کنی.");}
+function resetForm(){ $("title").value="";$("description").value="";$("category").value="متفرقه";$("game").value="";editingId=null;$("publish").textContent="🚀 انتشار بازی";say("فرم کاملاً پاک شد؛ می‌توانی بازی جدیدی وارد کنی.");}
 function encPath(path){return path.split("/").map(encodeURIComponent).join("/");}
 async function api(path,method="GET",body=null){
  const token=$("token").value.trim();if(!token)throw Error("اول توکن GitHub را وارد کن.");
@@ -83,7 +84,7 @@ function renderGames(){
  root.querySelectorAll("[data-delete]").forEach(b=>b.addEventListener("click",()=>deleteGame(b.dataset.delete)));
 }
 function startEdit(id){
- const g=gamesCache.find(x=>x.id===id);if(!g)return;editingId=id;$("title").value=g.title||"";$("description").value=g.description||"";$("game").value="";$("publish").textContent="💾 ذخیره تغییرات";say("در حال ویرایش: "+(g.title||id)+". اگر فایل HTML جدید انتخاب نکنی، فایل فعلی دست‌نخورده می‌ماند.");window.scrollTo({top:0,behavior:"smooth"});
+ const g=gamesCache.find(x=>x.id===id);if(!g)return;editingId=id;$("title").value=g.title||"";$("description").value=g.description||"";$("category").value=g.category||"متفرقه";$("game").value="";$("publish").textContent="💾 ذخیره تغییرات";say("در حال ویرایش: "+(g.title||id)+". اگر فایل HTML جدید انتخاب نکنی، فایل فعلی دست‌نخورده می‌ماند.");window.scrollTo({top:0,behavior:"smooth"});
 }
 function cleanRepoPath(path){
  let value=String(path||"");
@@ -150,7 +151,7 @@ $("reload").addEventListener("click",loadGames);\n$("cleanupOrphans").addEventLi
 $("publish").addEventListener("click",async()=>{
  const btn=$("publish");btn.disabled=true;
  try{
-  const title=$("title").value.trim(),description=$("description").value.trim(),file=$("game").files[0];
+  const title=$("title").value.trim(),description=$("description").value.trim(),category=$("category").value,file=$("game").files[0];
   if(!title)throw Error("نام بازی را وارد کن.");
   if(file&&!file.name.toLowerCase().endsWith(".html"))throw Error("فقط فایل با پسوند HTML قابل قبول است.");
   if(file&&file.size>20*1024*1024)throw Error("حجم فایل بیشتر از ۲۰ مگابایت است.");
@@ -159,14 +160,14 @@ $("publish").addEventListener("click",async()=>{
   if(editingId){
    const g=db.games.find(x=>x.id===editingId);if(!g)throw Error("این بازی در فهرست پیدا نشد؛ فهرست را دوباره بارگذاری کن.");
    if(file){say("در حال جایگزینی فایل بازی…");const oldFile=await api(g.path||g.url);await putFile(g.path||g.url,new Uint8Array(await file.arrayBuffer()),"بروزرسانی فایل بازی "+title,oldFile.sha);}
-   g.title=title;g.description=description;
+   g.title=title;g.description=description;g.category=category;
    await saveDB(db,"ویرایش بازی "+title);
    say("✅ تغییرات بازی ذخیره شد."+(file?" فایل HTML هم بروزرسانی شد.":""));
    editingId=null;resetForm();await loadGames();
   }else{
    const id=slug(title)+"-"+Date.now().toString().slice(-6),path="games/"+id+"/index.html";
    say("در حال بارگذاری فایل بازی…");await putFile(path,new Uint8Array(await file.arrayBuffer()),"افزودن بازی "+title);
-   db.games.push({id,title,description,path,url:path});
+   db.games.push({id,title,description,category,path,url:path,createdAt:Date.now()});
    try{await saveDB(db,"انتشار بازی "+title);}catch(e){say("فایل بازی آپلود شد اما ثبت در فهرست ناموفق بود. دوباره تلاش کن؛ فایل در مسیر "+path+" باقی مانده است.");throw e;}
    say("✅ بازی با موفقیت منتشر شد: "+title);resetForm();await loadGames();
   }
