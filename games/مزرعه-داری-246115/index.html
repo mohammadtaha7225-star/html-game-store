@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>مزرعه‌دار کوچولو | بازی سه‌بعدی</title>
+<style>
+:root{--glass:#18251de8;--gold:#ffd36a;--cream:#fff4d9;--green:#76c66d}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#8bc4df;font-family:Tahoma,Arial,sans-serif;touch-action:none}
+canvas{display:block;width:100%;height:100%}
+#topbar{position:fixed;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;gap:8px;pointer-events:none;align-items:flex-start}
+.panel{background:var(--glass);color:var(--cream);border:1px solid #ffffff30;border-radius:15px;padding:9px 12px;box-shadow:0 5px 18px #17210f35;backdrop-filter:blur(8px);font-size:12px;line-height:1.8}
+#stats{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#stats b{color:var(--gold);font-size:14px}
+#daybox{text-align:center;min-width:94px}
+#toast{position:fixed;top:76px;left:50%;transform:translateX(-50%);background:#17251deF;color:#fff4d9;padding:10px 16px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;max-width:90vw}
+#bottom{position:fixed;bottom:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:end;gap:8px;pointer-events:none}
+#actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;pointer-events:auto;max-width:72%}
+button{font-family:inherit;border:1px solid #ffffff40;background:#21392cE8;color:#fff5df;border-radius:13px;padding:10px 12px;font-size:12px;box-shadow:0 3px 10px #0003;touch-action:manipulation}
+button:active,button.selected{background:#b87931;color:white;transform:translateY(1px)}
+button:disabled{opacity:.4}
+#move{display:grid;grid-template-columns:46px 46px 46px;grid-template-rows:42px 42px;gap:4px;pointer-events:auto;direction:ltr;flex:none}
+#move button{padding:0;font-size:20px;border-radius:12px}
+#forward{grid-column:2;grid-row:1}#back{grid-column:2;grid-row:2}#left{grid-column:1;grid-row:2}#right{grid-column:3;grid-row:2}
+#help{position:fixed;right:10px;bottom:112px;background:#17251ddc;color:white;padding:8px 11px;border-radius:12px;font-size:11px;line-height:1.7;max-width:190px;pointer-events:none}
+#shop{position:fixed;inset:0;background:#09150bb8;display:none;align-items:center;justify-content:center;padding:18px;z-index:5}
+#shopcard{width:min(380px,100%);background:#f8edcf;color:#3a2c1c;border-radius:20px;padding:18px;box-shadow:0 12px 40px #0008}
+#shopcard h2{margin:0 0 6px;font-size:20px}#shopcard p{font-size:12px;line-height:1.8}
+.shoprow{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #d9c9a7;padding:10px 0;font-size:13px}
+.shoprow button{background:#426b3d;color:white}
+#shopclose{width:100%;margin-top:10px;background:#76523a}
+#mobilehint{font-size:11px;color:#6b5a42}
+@media(max-width:430px){.panel{padding:7px 9px;font-size:11px}#actions button{padding:9px 10px;font-size:11px}#help{bottom:108px;max-width:150px}}
+</style>
+</head>
+<body>
+<div id="topbar">
+ <div class="panel" id="stats">💰 <b id="coins">120</b> سکه <span>🌾 گندم: <b id="wheat">0</b></span> <span>🫘 لوبیا: <b id="beans">0</b></span></div>
+ <div class="panel" id="daybox">☀️ روز <b id="day">1</b><br><span id="weather">هوای آفتابی</span></div>
+</div>
+<div id="toast"></div>
+<div id="help">روی زمین‌های قهوه‌ای بزن تا بکاری یا محصول را برداشت کنی.<br>با کشیدن صفحه اطراف را ببین.</div>
+<div id="bottom">
+ <div id="move">
+  <button id="forward">▲</button><button id="left">◀</button><button id="back">▼</button><button id="right">▶</button>
+ </div>
+ <div id="actions">
+  <button id="wheatSeed" class="selected">🌾 بذر گندم</button>
+  <button id="beanSeed">🫘 بذر لوبیا</button>
+  <button id="water">💧 آب‌پاشی</button>
+  <button id="sell">🧺 فروش محصولات</button>
+  <button id="shop">🏪 فروشگاه</button>
+  <button id="sleep">🌙 روز بعد</button>
+ </div>
+</div>
+<div id="shop"><div id="shopcard">
+ <h2>🏪 فروشگاه مزرعه</h2><p>بذر بخر و مزرعه‌ات را بزرگ‌تر کن. هر بسته ۵ بذر دارد.</p>
+ <div class="shoprow"><span>🌾 بسته بذر گندم — ۵ عدد</span><button id="buyWheat">خرید · ۱۵ سکه</button></div>
+ <div class="shoprow"><span>🫘 بسته بذر لوبیا — ۵ عدد</span><button id="buyBeans">خرید · ۲۰ سکه</button></div>
+ <div class="shoprow"><span>🪴 کود تقویتی — رشد سریع‌تر</span><button id="buyFertilizer">خرید · ۳۰ سکه</button></div>
+ <p id="inventory">بذر گندم: ۵ | بذر لوبیا: ۵ | کود: ۰</p>
+ <button id="shopclose">بستن فروشگاه</button>
+</div></div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x9bd2ed);scene.fog=new THREE.Fog(0x9bd2ed,24,48);
+const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,100);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
+document.body.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xe5f6ff,0x637044,1.65));
+const sun=new THREE.DirectionalLight(0xfff0ce,2.2);sun.position.set(-8,14,7);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);sun.shadow.camera.left=-22;sun.shadow.camera.right=22;sun.shadow.camera.top=22;sun.shadow.camera.bottom=-22;scene.add(sun);
+const fill=new THREE.AmbientLight(0xffffff,.25);scene.add(fill);
+const mat=(c,r=.85,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
+const grass=mat(0x69a84b),grass2=mat(0x78b957),soil=mat(0x79502e),soilDark=mat(0x5e3c25),wood=mat(0x80502e),woodLight=mat(0xb77c45),stone=mat(0x9a9a83),leaf=mat(0x3e853e),leaf2=mat(0x67a943),gold=mat(0xe6bd45),beanMat=mat(0x6e9d4b);
+function box(w,h,d,x,y,z,m,shadow=true){let o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=shadow;o.receiveShadow=true;scene.add(o);return o}
+function cylinder(rt,rb,h,x,y,z,m,n=12){let o=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,n),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;scene.add(o);return o}
+function sphere(r,x,y,z,m,sx=1,sy=1,sz=1){let o=new THREE.Mesh(new THREE.SphereGeometry(r,12,10),m);o.position.set(x,y,z);o.scale.set(sx,sy,sz);o.castShadow=true;scene.add(o);return o}
+
+// Ground and farm borders
+box(60,.3,60,0,-.22,0,grass);
+for(let i=0;i<170;i++){let x=(Math.random()-.5)*48,z=(Math.random()-.5)*48;let tuft=sphere(.06,x,.0,z,Math.random()>.5?grass2:leaf2,.55,1.8,.55);tuft.rotation.z=Math.random()*.7}
+box(16,.22,13,0,-.03,0,soil);
+const plots=[];
+const cols=4,rows=3,plotW=2.45,plotD=2.15,gap=.22,startX=-5.3,startZ=-3.7;
+for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+ const x=startX+c*(plotW+gap),z=startZ+r*(plotD+gap);
+ box(plotW,.12,plotD,x,.12,z,soilDark);
+ const top=box(plotW-.12,.08,plotD-.12,x,.22,z,soil);
+ const borderMat=woodLight;
+ box(plotW+.08,.16,.12,x,.27,z-plotD/2,borderMat);box(plotW+.08,.16,.12,x,.27,z+plotD/2,borderMat);
+ box(.12,.16,plotD,x-plotW/2,.27,z,borderMat);box(.12,.16,plotD,x+plotW/2,.27,z,borderMat);
+ plots.push({x,z,mesh:top,type:null,stage:0,wet:false,plants:[],ready:false});
+}
+// Farm path
+const pathMat=mat(0xc4a477);
+box(2.2,.05,13,7.2,.04,0,pathMat);
+box(18,.05,1.6,0,.04,7.3,pathMat);
+// Barn / shed
+box(4.6,2.7,3.7,-8,1.3,-5,mat(0xa84f38));
+const roof=new THREE.Mesh(new THREE.ConeGeometry(3.3,1.7,4),mat(0x694239));roof.position.set(-8,3.35,-5);roof.rotation.y=Math.PI/4;roof.scale.set(1,.7,.8);roof.castShadow=true;scene.add(roof);
+box(1.1,1.8,.12,-8,1,-3.08,wood);
+box(.25,.25,.13,-7.58,1,-3,mat(0xe0b45a));
+// Fence
+for(let z=-11;z<=11;z+=1.7){cylinder(.07,.07,1.1,-11,.55,z,wood);cylinder(.07,.07,1.1,11,.55,z,wood)}
+for(let x=-11;x<=11;x+=1.7){cylinder(.07,.07,1.1,x,.55,-11,wood);cylinder(.07,.07,1.1,x,.55,11,wood)}
+for(let z=-11;z<=11;z+=1.7){box(.12,.12,1.7,-11,.75,z,woodLight);box(.12,.12,1.7,11,.75,z,woodLight)}
+for(let x=-11;x<=11;x+=1.7){box(1.7,.12,.12,x,.75,-11,woodLight);box(1.7,.12,.12,x,.75,11,woodLight)}
+// trees
+function tree(x,z){
+ cylinder(.22,.3,1.7,x,.85,z,mat(0x76502f),9);
+ sphere(.95,x,2.05,z,mat(0x397c3b),1.1,1.0,1.0);
+ sphere(.65,x-.48,2.25,z+.12,mat(0x4e9141));
+ sphere(.68,x+.45,2.3,z-.12,mat(0x5b9d47));
+}
+[[-13,-8],[-14,0],[-13,8],[13,-8],[14,1],[13,8],[-7,12],[7,12]].forEach(p=>tree(...p));
+// Water well
+cylinder(.72,.8,.65,8,.35,-7,stone,16);cylinder(.54,.54,.1,8,.72,-7,mat(0x397b9b),16);
+for(let x of [7.4,8.6])box(.12,1.6,.12,x,1.5,-7,wood);
+box(1.5,.12,.12,8,2.25,-7,woodLight);
+// scarecrow
+cylinder(.09,.09,2.4,8,1.2,7,wood);
+box(1.5,.12,.12,8,1.8,7,woodLight);sphere(.3,8,2.35,7,mat(0xd9b17a));box(.65,.18,.5,8,2.65,7,mat(0x9b5a36));
+// player avatar simple farmer
+const farmer=new THREE.Group();scene.add(farmer);
+const body=new THREE.Mesh(new THREE.CapsuleGeometry(.28,.55,4,8),mat(0x397bba));body.position.y=.82;body.castShadow=true;farmer.add(body);
+const head=new THREE.Mesh(new THREE.SphereGeometry(.22,16,12),mat(0xe8b98c));head.position.y=1.42;head.castShadow=true;farmer.add(head);
+const hat=new THREE.Mesh(new THREE.CylinderGeometry(.29,.29,.08,16),mat(0xd5a344));hat.position.y=1.63;farmer.add(hat);
+const hatTop=new THREE.Mesh(new THREE.CylinderGeometry(.17,.2,.2,16),mat(0xd5a344));hatTop.position.y=1.75;farmer.add(hatTop);
+for(let x of [-.13,.13]){let leg=new THREE.Mesh(new THREE.CylinderGeometry(.09,.1,.45,10),mat(0x4b3c32));leg.position.set(x,.28,0);farmer.add(leg)}
+farmer.position.set(7,0,4.8);
+
+// Crop visuals generated per plot
+function clearPlants(p){for(const o of p.plants)scene.remove(o);p.plants=[]}
+function addPlant(p){
+ clearPlants(p);
+ if(!p.type||p.stage===0)return;
+ let count= p.stage===1?3:p.stage===2?5:7;
+ for(let i=0;i<count;i++){
+  let x=p.x+(Math.random()-.5)*1.7,z=p.z+(Math.random()-.5)*1.4;
+  if(p.type==='wheat'){
+   let h=[.22,.55,.95][p.stage-1];
+   let stem=cylinder(.025,.035,h,x,.27+h/2,z,mat(0x62883b),7);p.plants.push(stem);
+   if(p.stage===3){
+    let head=sphere(.085,x,.27+h+.05,z,gold,.55,1.8,.55);head.rotation.z=-.25;p.plants.push(head);
+    for(let j=0;j<3;j++){let blade=sphere(.035,x+(Math.random()-.5)*.12,.35+h*.4,z+(Math.random()-.5)*.12,leaf,.5,2,.5);blade.rotation.z=(Math.random()-.5)*.9;p.plants.push(blade)}
+   }else{let l=sphere(.055,x+.06,.27+h*.55,z,leaf,.5,2,.5);l.rotation.z=-.4;p.plants.push(l)}
+  }else{
+   let h=[.2,.48,.78][p.stage-1];
+   let stem=cylinder(.035,.04,h,x,.27+h/2,z,mat(0x3f7c3d),7);p.plants.push(stem);
+   for(let j=0;j<(p.stage===1?2:4);j++){let l=sphere(.13,x+(Math.random()-.5)*.2,.35+Math.random()*h,z+(Math.random()-.5)*.2,j%2?leaf:leaf2,1.5,.55,.7);p.plants.push(l)}
+   if(p.stage===3)for(let j=0;j<2;j++){let bean=sphere(.08,x+(Math.random()-.5)*.18,.38+h*.7,z+(Math.random()-.5)*.15,beanMat,.7,1.4,.7);p.plants.push(bean)}
+  }
+ }
+}
+let state={coins:120,wheat:0,beans:0,wheatSeeds:5,beanSeeds:5,fertilizer:0,selected:'wheat',day:1,weather:'آفتابی',waterCan:5};
+const $=id=>document.getElementById(id);
+function updateUI(){
+ $('coins').textContent=state.coins;$('wheat').textContent=state.wheat;$('beans').textContent=state.beans;$('day').textContent=state.day;
+ $('weather').textContent=state.weather==='rain'?'🌧️ بارانی':state.weather==='cloud'?'☁️ ابری':'☀️ آفتابی';
+ $('inventory').textContent=`بذر گندم: ${state.wheatSeeds} | بذر لوبیا: ${state.beanSeeds} | کود: ${state.fertilizer} | آب: ${state.waterCan}`;
+}
+let toastTimer;function toast(t){let el=$('toast');el.textContent=t;el.style.opacity=1;clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.style.opacity=0,1900)}
+function selectCrop(t){state.selected=t;$('wheatSeed').classList.toggle('selected',t==='wheat');$('beanSeed').classList.toggle('selected',t==='beans');toast(t==='wheat'?'بذر گندم انتخاب شد':'بذر لوبیا انتخاب شد')}
+$('wheatSeed').onclick=()=>selectCrop('wheat');$('beanSeed').onclick=()=>selectCrop('beans');
+function plantOrHarvest(p){
+ if(!p)return;
+ if(p.ready){if(p.type==='wheat')state.wheat+=3;else state.beans+=2;toast(p.type==='wheat'?'🌾 سه واحد گندم برداشت کردی!':'🫘 دو واحد لوبیا برداشت کردی!');p.type=null;p.stage=0;p.ready=false;p.wet=false;clearPlants(p);p.mesh.material=soil;updateUI();return}
+ if(!p.type){
+  let key=state.selected==='wheat'?'wheatSeeds':'beanSeeds';
+  if(state[key]<=0){toast('بذر کافی نداری؛ از فروشگاه خرید کن!');return}
+  state[key]--;p.type=state.selected;p.stage=1;p.wet=state.weather==='rain';addPlant(p);toast(state.selected==='wheat'?'🌱 گندم کاشته شد':'🌱 لوبیا کاشته شد');updateUI();return
+ }
+ toast(p.stage<3?'هنوز محصول رشد نکرده؛ آب بده یا روز بعد را شروع کن.':'محصول آماده برداشت است!');
+}
+function waterPlot(p){if(!p||!p.type||p.ready){toast('اول یک زمین کاشته‌شده انتخاب کن');return}if(p.wet){toast('این زمین همین حالا آب دارد');return}if(state.waterCan<=0){toast('آب‌پاش خالی است؛ روز بعد دوباره پر می‌شود');return}state.waterCan--;p.wet=true;toast('💧 زمین آبیاری شد؛ محصول سریع‌تر رشد می‌کند');updateUI()}
+let waterMode=false;
+$('water').onclick=()=>{waterMode=!waterMode;$('water').classList.toggle('selected',waterMode);toast(waterMode?'حالت آب‌پاشی: روی زمین بزن':'حالت آب‌پاشی خاموش شد')};
+$('sell').onclick=()=>{let total=state.wheat*8+state.beans*13;if(!total){toast('چیزی برای فروش نداری!');return}state.coins+=total;toast(`🧺 محصولاتت به قیمت ${total} سکه فروخته شد!`);state.wheat=0;state.beans=0;updateUI()};
+$('shop').onclick=()=>{$('shop').style.display='flex';updateUI()};
+$('shopclose').onclick=()=>{$('shop').style.display='none'};
+function buy(cost,fn){if(state.coins<cost){toast('سکه کافی نداری!');return}state.coins-=cost;fn();updateUI();toast('خرید با موفقیت انجام شد!')}
+$('buyWheat').onclick=()=>buy(15,()=>state.wheatSeeds+=5);
+$('buyBeans').onclick=()=>buy(20,()=>state.beanSeeds+=5);
+$('buyFertilizer').onclick=()=>buy(30,()=>state.fertilizer++);
+function nextDay(){
+ state.day++;state.waterCan=5;
+ const r=Math.random();state.weather=r<.2?'rain':r<.5?'cloud':'sun';
+ let grown=0;
+ for(const p of plots){if(!p.type||p.ready)continue;
+  if(state.weather==='rain')p.wet=true;
+  if(p.wet||state.weather==='rain'||state.fertilizer>0){
+   p.stage=Math.min(3,p.stage+1);p.wet=false;grown++;
+   if(p.stage===3)p.ready=true;
+   addPlant(p);
+   if(state.fertilizer>0){state.fertilizer--;break}
+  }
+ }
+ toast(`🌅 روز ${state.day} شروع شد؛ ${grown} زمین رشد کرد!`);
+ updateUI();
+}
+$('sleep').onclick=nextDay;
+
+// Camera, touch look, player movement
+let yaw=0,pitch=.25,drag=false,lastX=0,lastY=0;
+const held={f:false,b:false,l:false,r:false};
+function bindMove(id,k){const el=$(id);let on=e=>{e.preventDefault();held[k]=true;el.classList.add('selected');el.setPointerCapture?.(e.pointerId)},off=e=>{held[k]=false;el.classList.remove('selected')};el.addEventListener('pointerdown',on);el.addEventListener('pointerup',off);el.addEventListener('pointercancel',off);el.addEventListener('lostpointercapture',off)}
+bindMove('forward','f');bindMove('back','b');bindMove('left','l');bindMove('right','r');
+renderer.domElement.addEventListener('pointerdown',e=>{drag=true;lastX=e.clientX;lastY=e.clientY;renderer.domElement.setPointerCapture(e.pointerId)});
+renderer.domElement.addEventListener('pointermove',e=>{if(!drag)return;let dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;yaw-=dx*.004;pitch=Math.max(-.5,Math.min(.85,pitch+dy*.003))});
+renderer.domElement.addEventListener('pointerup',()=>drag=false);renderer.domElement.addEventListener('pointercancel',()=>drag=false);
+addEventListener('keydown',e=>{if(['w','ArrowUp'].includes(e.key))held.f=true;if(['s','ArrowDown'].includes(e.key))held.b=true;if(e.key==='a')held.l=true;if(e.key==='d')held.r=true});
+addEventListener('keyup',e=>{if(['w','ArrowUp'].includes(e.key))held.f=false;if(['s','ArrowDown'].includes(e.key))held.b=false;if(e.key==='a')held.l=false;if(e.key==='d')held.r=false});
+
+// Raycast tap on crop plots; use screen tap without a drag
+const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let downPos=null;
+renderer.domElement.addEventListener('pointerdown',e=>{downPos={x:e.clientX,y:e.clientY}});
+renderer.domElement.addEventListener('pointerup',e=>{
+ if(!downPos||Math.hypot(e.clientX-downPos.x,e.clientY-downPos.y)>9)return;
+ const rect=renderer.domElement.getBoundingClientRect();pointer.x=((e.clientX-rect.left)/rect.width)*2-1;pointer.y=-((e.clientY-rect.top)/rect.height)*2+1;
+ raycaster.setFromCamera(pointer,camera);
+ const hits=raycaster.intersectObjects(plots.map(p=>p.mesh),false);
+ if(hits.length){let p=plots.find(p=>p.mesh===hits[0].object);if(waterMode)waterPlot(p);else plantOrHarvest(p)}
+ downPos=null;
+});
+function animate(t){
+ requestAnimationFrame(animate);let dt=Math.min(.04,(t-(animate.last||t))/1000);animate.last=t;
+ const speed=3.2*dt;const fwd=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
+ let dx=0,dz=0;if(held.f){dx+=fwd.x*speed;dz+=fwd.z*speed}if(held.b){dx-=fwd.x*speed;dz-=fwd.z*speed}if(held.r){dx+=right.x*speed;dz+=right.z*speed}if(held.l){dx-=right.x*speed;dz-=right.z*speed}
+ farmer.position.x=Math.max(-9,Math.min(9,farmer.position.x+dx));farmer.position.z=Math.max(-9,Math.min(9,farmer.position.z+dz));
+ if(Math.abs(dx)+Math.abs(dz)>.001){farmer.rotation.y=Math.atan2(dx,dz)}
+ const target=new THREE.Vector3(farmer.position.x,farmer.position.y+1.45,farmer.position.z);
+ const offset=new THREE.Vector3(Math.sin(yaw)*8,4.9,Math.cos(yaw)*8);
+ camera.position.lerp(target.clone().add(offset),.09);
+ camera.lookAt(target.x,target.y+pitch,target.z);
+ renderer.render(scene,camera);
+}
+updateUI();requestAnimationFrame(animate);
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.6))});
+</script>
+</body>
+</html>
