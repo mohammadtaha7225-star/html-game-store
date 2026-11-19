@@ -1,12 +1,4 @@
 {
   "version": 1,
-  "games": [
-    {
-      "id": "بازی-266064",
-      "title": "بازی",
-      "description": "ختااا",
-      "path": "games/بازی-266064/index.html",
-      "url": "games/بازی-266064/index.html"
-    }
-  ]
+  "games": []
 }
