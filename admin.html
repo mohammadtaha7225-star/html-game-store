@@ -74,8 +74,10 @@ function slug(s){return s.toLowerCase().trim().replace(/[^\p{L}\p{N}]+/gu,"-").r
 function bytesToBase64(bytes){let binary="";const step=0x8000;for(let i=0;i<bytes.length;i+=step)binary+=String.fromCharCode(...bytes.subarray(i,i+step));return btoa(binary)}
 async function api(path,method="GET",body=null){
  const token=$("token").value.trim();if(!token)throw Error("اول توکن GitHub را وارد کن.");
- const res=await fetch("https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/"+path+(method==="GET"?"?ref="+BRANCH:""),{
-  method,headers:{"Accept":"application/vnd.github+json","Authorization":"Bearer "+token,"X-GitHub-Api-Version":"2022-11-28","Content-Type":"application/json"},
+ const url="https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/"+path+(method==="GET"?"?ref="+BRANCH+"&nocache="+Date.now():"");
+ const res=await fetch(url,{
+  method,cache:method==="GET"?"no-store":"no-cache",
+  headers:{"Accept":"application/vnd.github+json","Authorization":"Bearer "+token,"X-GitHub-Api-Version":"2022-11-28","Content-Type":"application/json","Cache-Control":"no-cache","Pragma":"no-cache"},
   body:body?JSON.stringify(body):undefined
  });
  const data=await res.json().catch(()=>({}));
