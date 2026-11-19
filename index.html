@@ -40,14 +40,12 @@ footer{text-align:center;color:#7784aa;font-size:11px;padding:35px 15px 28px}a{c
 const GAME_CACHE='html-game-files-v1',DOWNLOAD_KEY='gs_download_counts_v2';
 const $=id=>document.getElementById(id),status=$('status');let allGames=[],category='همه',query='';
 const icons=['🎮','🏎️','🧱','🚀','🧩','⚔️','🌌','🏁','🕹️'];
-let activeGameBlobUrl=null;
 function closeGamePlayer(){
  const player=$('gamePlayer');if(!player)return;
  const frame=player.querySelector('iframe');if(frame)frame.src='about:blank';
  player.hidden=true;
- if(activeGameBlobUrl){URL.revokeObjectURL(activeGameBlobUrl);activeGameBlobUrl=null;}
 }
-function openGamePlayer(blob,title){
+function openGamePlayer(url,title){
  let player=$('gamePlayer');
  if(!player){
   player=document.createElement('section');player.id='gamePlayer';player.hidden=true;
@@ -58,10 +56,8 @@ function openGamePlayer(blob,title){
   frame.setAttribute('sandbox','allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-downloads');
   bar.append(name,close);player.append(bar,frame);document.body.append(player);
  }
- if(activeGameBlobUrl){URL.revokeObjectURL(activeGameBlobUrl);activeGameBlobUrl=null;}
- activeGameBlobUrl=URL.createObjectURL(blob);
  player.querySelector('.playerName').textContent=title||'اجرای بازی';
- player.querySelector('iframe').src=activeGameBlobUrl;
+ player.querySelector('iframe').src=url;
  player.hidden=false;
 }
 
@@ -78,7 +74,7 @@ function makeCard(g,index){
  const get=card.querySelector('.get'),play=card.querySelector('.play');
  cachedPromise.then(r=>{if(r)get.textContent='دریافت‌شده ✓'}).catch(()=>{});
  get.onclick=async()=>{try{get.disabled=true;get.textContent='در حال دریافت…';const r=await fetch(gameUrl(g),{cache:'no-store'});if(!r.ok)throw Error('دانلود ناموفق');const cache=await caches.open(GAME_CACHE);await cache.put(gameUrl(g),r.clone());const c=counts();c[g.id]=Number(c[g.id]||0)+1;localStorage.setItem(DOWNLOAD_KEY,JSON.stringify(c));get.textContent='دریافت‌شده ✓';card.querySelector('.downloads').textContent='⬇ '+countFor(g)+' دریافت';renderPopular();status.textContent='بازی «'+(g.title||'')+'» دریافت شد و برای اجرای آفلاین ذخیره شد.';}catch(e){get.textContent='دریافت';alert('دریافت بازی ناموفق بود. اتصال اینترنت را بررسی کن.');}finally{get.disabled=false}};
- play.onclick=async()=>{try{const cache=await caches.open(GAME_CACHE),response=await cache.match(gameUrl(g));if(!response){alert('برای اجرای بازی، اول آن را دریافت کن.');return}const blob=new Blob([await response.text()],{type:'text/html'});openGamePlayer(blob,g.title);}catch(e){alert('اجرای بازی ممکن نشد: '+e.message);}};
+ play.onclick=async()=>{try{const url=gameUrl(g),cache=await caches.open(GAME_CACHE),response=await cache.match(url);if(!response){alert('برای اجرای بازی، اول آن را دریافت کن.');return}openGamePlayer(url,g.title);}catch(e){alert('اجرای بازی ممکن نشد: '+e.message);}};
  return card;
 }
 function filtered(){return allGames.filter(g=>(category==='همه'||categoryOf(g)===category)&&((g.title||'')+' '+(g.description||'')).toLowerCase().includes(query.toLowerCase()))}
