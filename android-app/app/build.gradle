@@ -1,0 +1,13 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'com.taha.htmlgamestore'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'com.taha.htmlgamestore'
+        minSdk 23
+        targetSdk 35
+        versionCode 1
+        versionName '1.0'
+    }
+}
