@@ -147,7 +147,8 @@ async function deleteGame(id){
  }catch(e){say("❌ حذف کامل نشد: "+e.message+"\\nاگر فایل حذف شده ولی رکورد باقی مانده، فهرست را دوباره بارگذاری کن.");}
  finally{setBusy(false);}
 }
-$("reload").addEventListener("click",loadGames);\n$("cleanupOrphans").addEventListener("click",cleanupOrphans);
+$("reload").addEventListener("click",loadGames);
+$("cleanupOrphans").addEventListener("click",cleanupOrphans);
 $("publish").addEventListener("click",async()=>{
  const btn=$("publish");btn.disabled=true;
  try{
