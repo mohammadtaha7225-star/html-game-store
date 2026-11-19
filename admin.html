@@ -107,11 +107,34 @@ $("publish").addEventListener("click",async()=>{
    await putFile(imagePath,bytesToBase64(new Uint8Array(await cover.arrayBuffer())),"افزودن تصویر بازی "+title);
   }
   say("فایل‌ها آپلود شدند؛ در حال به‌روزرسانی فهرست فروشگاه…");
-  let db={version:1,games:[]},sha=null;
-  try{const old=await api("database/games.json");sha=old.sha;const raw=atob(old.content.replace(/\n/g,""));const bytes=Uint8Array.from(raw,c=>c.charCodeAt(0));db=JSON.parse(new TextDecoder().decode(bytes));}catch(e){if(!String(e.message).includes("Not Found"))throw e;}
-  db.games=Array.isArray(db.games)?db.games:[];
-  db.games.push({id,title,description,path:gamePath,url:gamePath,...(imagePath?{image:imagePath}:{})});
-  await putFile("database/games.json",bytesToBase64(new TextEncoder().encode(JSON.stringify(db,null,2))),"انتشار بازی "+title,sha);
+  // برای جلوگیری از خطای SHA، فهرست را درست پیش از هر تلاش دوباره از GitHub می‌خوانیم.
+  let saved=false,lastError=null;
+  for(let attempt=1;attempt<=3&&!saved;attempt++){
+   let db={version:1,games:[]},sha=null;
+   try{
+    const current=await api("database/games.json");
+    sha=current.sha;
+    const raw=atob(current.content.replace(/\n/g,""));
+    const bytes=Uint8Array.from(raw,c=>c.charCodeAt(0));
+    db=JSON.parse(new TextDecoder().decode(bytes));
+   }catch(e){
+    if(!String(e.message).includes("Not Found"))throw e;
+   }
+   db.games=Array.isArray(db.games)?db.games:[];
+   if(!db.games.some(g=>g.id===id)){
+    db.games.push({id,title,description,path:gamePath,url:gamePath,...(imagePath?{image:imagePath}:{})});
+   }
+   try{
+    await putFile("database/games.json",bytesToBase64(new TextEncoder().encode(JSON.stringify(db,null,2))),"انتشار بازی "+title,sha);
+    saved=true;
+   }catch(e){
+    lastError=e;
+    const msg=String(e.message).toLowerCase();
+    if(!(msg.includes("does not match")||msg.includes("sha")||msg.includes("409")||msg.includes("422"))||attempt===3)throw e;
+    await new Promise(resolve=>setTimeout(resolve,700*attempt));
+   }
+  }
+  if(!saved)throw lastError||Error("ذخیره فهرست بازی‌ها انجام نشد.");
   say("✅ بازی با موفقیت منتشر شد!\nنام: "+title+"\nاکنون فروشگاه را باز کن و صفحه را تازه‌سازی کن.\n\nاگر بازی بلافاصله دیده نشد، چند دقیقه صبر کن.");
  }catch(e){say("❌ "+e.message+"\n\nاگر خطای 401 یا 403 دیدی، دسترسی توکن را بررسی کن. اگر خطای 409 دیدی، دوباره تلاش کن.");}
  finally{button.disabled=false;}
