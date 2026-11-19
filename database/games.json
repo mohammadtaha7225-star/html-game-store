@@ -1,4 +1,14 @@
 {
   "version": 1,
-  "games": []
+  "games": [
+    {
+      "id": "ماینکرافت-166214",
+      "title": "ماینکرافت",
+      "description": "یک زمین کوچک برای ساخت و ساز",
+      "category": "سه‌بعدی",
+      "path": "games/ماینکرافت-166214/index.html",
+      "url": "games/ماینکرافت-166214/index.html",
+      "createdAt": 1795081168749
+    }
+  ]
 }
