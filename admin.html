@@ -22,6 +22,7 @@ a{color:#c4b5fd}.danger{background:#991b1b}.secondary{background:#334155}.succes
 <p class="hint">توکن فقط در همین مرورگر استفاده می‌شود. ذخیره آن اختیاری است؛ روی گوشی مشترک ذخیره نکن.</p>
 <label for="token">توکن GitHub</label><input id="token" type="password" autocomplete="off" placeholder="github_pat_...">
 <label style="display:flex;align-items:center;gap:9px;font-weight:normal"><input id="rememberToken" type="checkbox"> ذخیره توکن در همین گوشی</label>
+<button type="button" id="saveToken" class="success">💾 ذخیره توکن</button>
 <button type="button" id="clearToken" class="secondary">پاک کردن توکن ذخیره‌شده</button>
 <p class="hint">توکن Fine-grained با دسترسی Contents روی Read and write برای مخزن html-game-store لازم است.</p>
 <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">ساخت توکن در GitHub</a>
@@ -51,6 +52,7 @@ let gamesCache=[],editingId=null,dbSha=null;
 function say(s){$("status").textContent=s}
 function setBusy(b){$("publish").disabled=b;$("reload").disabled=b}
 try{const saved=localStorage.getItem(TOKEN_KEY);if(saved){$("token").value=saved;$("rememberToken").checked=true;}}catch(e){}
+$("saveToken").addEventListener("click",()=>{const token=$("token").value.trim();if(!token){say("اول توکن GitHub را وارد کن.");return;}try{localStorage.setItem(TOKEN_KEY,token);$("rememberToken").checked=true;say("✅ توکن با موفقیت در همین گوشی ذخیره شد.");}catch(e){say("❌ ذخیره‌سازی در این مرورگر ممکن نیست.");}});
 $("rememberToken").addEventListener("change",()=>{try{if($("rememberToken").checked){if(!$("token").value.trim()){ $("rememberToken").checked=false;say("اول توکن را وارد کن.");return;}localStorage.setItem(TOKEN_KEY,$("token").value.trim());say("توکن در همین گوشی ذخیره شد.");}else{localStorage.removeItem(TOKEN_KEY);say("ذخیره توکن خاموش شد.");}}catch(e){say("ذخیره‌سازی در این مرورگر ممکن نیست.");}});
 $("token").addEventListener("input",()=>{if($("rememberToken").checked){try{localStorage.setItem(TOKEN_KEY,$("token").value.trim());}catch(e){}}});
 $("clearToken").addEventListener("click",()=>{try{localStorage.removeItem(TOKEN_KEY);}catch(e){}$("token").value="";$("rememberToken").checked=false;say("توکن ذخیره‌شده پاک شد.");});
