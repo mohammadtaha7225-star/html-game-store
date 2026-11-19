@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>دنیای مکعبی من - فیزیک بهتر</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#87c9ed;font-family:Tahoma,Arial;touch-action:none}
+#game{position:fixed;inset:0}canvas{display:block;width:100%;height:100%}
+#start,#error{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;background:linear-gradient(#142f45dd,#07131fee);color:white;text-align:center;padding:18px}
+.panel{width:min(440px,100%);background:#173344;border:2px solid #79cda0;border-radius:20px;padding:22px;box-shadow:0 10px 35px #0008}
+h1{font-size:25px;margin:0 0 10px}p{font-size:14px;line-height:1.9;color:#e2eeee}
+button{border:0;border-radius:13px;padding:13px 18px;font-size:16px;font-weight:bold;background:#72dc99;color:#10251b}
+#status{font-size:12px;color:#ffd98b;margin:10px 0}
+#hud{display:none;position:fixed;inset:0;color:white;text-shadow:0 2px 4px #000;pointer-events:none;font-weight:bold}
+#coords{position:absolute;top:9px;left:9px;background:#0008;padding:8px;border-radius:9px;font-size:12px}
+#cross{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:25px}
+#look{position:absolute;left:0;top:0;width:58%;height:100%;pointer-events:auto;touch-action:none}
+#joy{position:absolute;right:18px;bottom:20px;width:140px;height:140px;border-radius:50%;background:#ffffff38;border:2px solid #ffffffaa;pointer-events:auto;touch-action:none}
+#knob{position:absolute;width:58px;height:58px;left:39px;top:39px;border-radius:50%;background:#ffffffc9;border:2px solid white}
+#actions{position:absolute;left:12px;bottom:17px;display:flex;gap:8px;pointer-events:auto}
+#actions button{background:#173344e8;color:white;border:1px solid #fff9;padding:11px 12px;font-size:12px}
+#hint{position:absolute;left:50%;bottom:5px;transform:translateX(-50%);font-size:10px;white-space:nowrap}
+#rotate{display:none;position:fixed;z-index:20;inset:0;background:#081722e8;color:white;align-items:center;justify-content:center;text-align:center;padding:25px;font-size:20px;pointer-events:none}
+@media(orientation:portrait){#rotate{display:flex}}
+</style>
+</head>
+<body>
+<div id="game"></div>
+<div id="start"><div class="panel"><h1>🌲 دنیای مکعبی من</h1><p>نسخه با فیزیک بهتر و دنیای مکعبی‌تر<br>برخورد با درخت و دیوار • بافت بلوک‌ها • دوربین اول‌شخص</p><div id="status">در حال آماده‌سازی...</div><button id="play" disabled>لطفاً صبر کن...</button><p style="font-size:11px">این بازی برای اجرا به اینترنت و مرورگر Chrome نیاز دارد.</p></div></div>
+<div id="error" style="display:none"><div class="panel"><h2>بازی اجرا نشد</h2><p id="errorText"></p><button onclick="location.reload()">تلاش دوباره</button></div></div>
+<div id="rotate">📱 گوشی را افقی بچرخان تا بازی کنی.</div>
+<div id="hud"><div id="coords">X: 0 | Z: 0</div><div id="cross">＋</div><div id="look"></div><div id="joy"><div id="knob"></div></div><div id="actions"><button id="break">⛏ شکستن</button><button id="place">🧱 گذاشتن</button><button id="next">بلوک: چمن</button></div><div id="hint">سمت چپ را بکش تا نگاه کنی • جوی‌استیک راست برای حرکت</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+<script>
+(()=> {
+const $=id=>document.getElementById(id), status=$('status'),play=$('play');
+if(!window.THREE){status.textContent='موتور سه‌بعدی بارگذاری نشد؛ اینترنت را بررسی کن.';$('errorText').textContent='اینترنت را روشن کن و فایل را در Chrome باز کن.';return;}
+status.textContent='آماده است!';play.disabled=false;play.textContent='شروع بازی ▶';
+let scene,camera,renderer,player,yaw=0,pitch=0,started=false,selected=0,velY=0;
+const blocks=[],occupied=new Map(),names=['چمن','خاک','سنگ','چوب','برگ','شن','آجر','شیشه'];
+const key=(x,y,z)=>`${x},${y},${z}`;
+const geo=new THREE.BoxGeometry(1,1,1);
+function makeTexture(base,spots,seed){
+ const c=document.createElement('canvas');c.width=c.height=64;const ctx=c.getContext('2d');ctx.fillStyle=base;ctx.fillRect(0,0,64,64);
+ let s=seed;const rand=()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296};
+ for(let i=0;i<210;i++){ctx.fillStyle=spots[Math.floor(rand()*spots.length)];let x=Math.floor(rand()*16)*4,y=Math.floor(rand()*16)*4;ctx.fillRect(x,y,2+Math.floor(rand()*3),2+Math.floor(rand()*3))}
+ const t=new THREE.CanvasTexture(c);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.NearestMipmapNearestFilter;t.colorSpace=THREE.SRGBColorSpace;return t;
+}
+const mats=[
+ new THREE.MeshLambertMaterial({map:makeTexture('#5d9f3f',['#76b84d','#477e32','#8ac65a'],1)}),
+ new THREE.MeshLambertMaterial({map:makeTexture('#91613b',['#a9774b','#70462c','#bd8b5b'],2)}),
+ new THREE.MeshLambertMaterial({map:makeTexture('#858b91',['#a5abb0','#686f77','#777e84'],3)}),
+ new THREE.MeshLambertMaterial({map:makeTexture('#80502d',['#a16b3b','#633d25','#b17b48'],4)}),
+ new THREE.MeshLambertMaterial({map:makeTexture('#367d38',['#4b9845','#28652e','#69a94c'],5)}),
+ new THREE.MeshLambertMaterial({map:makeTexture('#d8c38d',['#eee0ae','#bba875','#cdb780'],6)}),
+ new THREE.MeshLambertMaterial({map:makeTexture('#a85f48',['#c47a5c','#874632','#d08a68'],7)}),
+ new THREE.MeshLambertMaterial({map:makeTexture('#9bd9e8',['#d6f5f7','#77c5da','#ffffff'],8),transparent:true,opacity:.62})
+];
+function addBlock(x,y,z,mat){
+ const k=key(x,y,z);if(occupied.has(k))return occupied.get(k);
+ const m=new THREE.Mesh(geo,mats[mat]);m.position.set(x,y,z);m.userData={x,y,z,mat};scene.add(m);blocks.push(m);occupied.set(k,m);return m;
+}
+function removeBlock(m){scene.remove(m);blocks.splice(blocks.indexOf(m),1);occupied.delete(key(m.userData.x,m.userData.y,m.userData.z))}
+function init(){
+ scene=new THREE.Scene();scene.background=new THREE.Color(0x87c9ed);scene.fog=new THREE.Fog(0x87c9ed,30,85);
+ camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,120);
+ renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'low-power'});renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;$('game').appendChild(renderer.domElement);
+ scene.add(new THREE.HemisphereLight(0xd9efff,0x5d6740,2.1));
+ const sun=new THREE.DirectionalLight(0xffefcf,2.3);sun.position.set(-12,22,12);scene.add(sun);
+ // Solid grassy floor: top surface at y=0.5
+ for(let x=-22;x<=22;x++)for(let z=-22;z<=22;z++)addBlock(x,0,z,0);
+ // Forest trees: trunks and leaf cubes
+ for(let i=0;i<58;i++){let x=Math.floor(Math.random()*38-19),z=Math.floor(Math.random()*38-19);if(Math.abs(x)<3&&Math.abs(z)<4)continue;
+  for(let y=1;y<=3;y++)addBlock(x,y,z,3);
+  for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let dy=0;dy<=2;dy++)if(Math.abs(dx)+Math.abs(dz)+dy<6&&Math.random()>.12)addBlock(x+dx,3+dy,z+dz,4);
+ }
+ // Rocky ridge and distant blocky hills
+ for(let i=0;i<24;i++){let x=-18+i,z=-15+Math.floor(Math.sin(i*.55)*4);for(let y=1;y<3+(i%3);y++)addBlock(x,y,z,2)}
+ // Small wooden cabin
+ for(let x=-3;x<=1;x++)for(let z=-4;z<=-1;z++){if(x===-3||x===1||z===-4||z===-1){for(let y=1;y<=3;y++)if(!(z===-1&&x===-1&&y<3))addBlock(x,y,z,3)}}
+ for(let x=-3;x<=1;x++)for(let z=-4;z<=-1;z++)addBlock(x,4,z,6);
+ const water=new THREE.Mesh(new THREE.BoxGeometry(9,.12,6),new THREE.MeshLambertMaterial({color:0x249dce,transparent:true,opacity:.86}));water.position.set(9,.18,-7);scene.add(water);
+ player=new THREE.Vector3(0,2.15,6);velY=0;
+ started=true;$('start').style.display='none';$('hud').style.display='block';window.addEventListener('resize',resize);resize();loop();
+}
+function resize(){if(!renderer)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)}
+function loop(){if(!started)return;requestAnimationFrame(loop);move();camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch;camera.position.copy(player);renderer.render(scene,camera);$('coords').textContent=`X: ${player.x.toFixed(1)} | Z: ${player.z.toFixed(1)}`}
+play.onclick=()=>{try{init()}catch(e){$('errorText').textContent='خطای گرافیکی: '+e.message;$('error').style.display='flex'}};
+let moveX=0,moveY=0,joyId=null;const joy=$('joy'),knob=$('knob');
+function joyMove(e){const r=joy.getBoundingClientRect(),dx0=e.clientX-(r.left+r.width/2),dy0=e.clientY-(r.top+r.height/2),lim=43,len=Math.hypot(dx0,dy0),f=len>lim?lim/len:1,dx=dx0*f,dy=dy0*f;knob.style.left=(41+dx)+'px';knob.style.top=(41+dy)+'px';moveX=dx/lim;moveY=dy/lim}
+joy.addEventListener('pointerdown',e=>{joyId=e.pointerId;joy.setPointerCapture(e.pointerId);joyMove(e)});
+joy.addEventListener('pointermove',e=>{if(e.pointerId===joyId)joyMove(e)});
+function joyEnd(e){if(e.pointerId!==joyId)return;joyId=null;moveX=moveY=0;knob.style.left='39px';knob.style.top='39px'}
+joy.addEventListener('pointerup',joyEnd);joy.addEventListener('pointercancel',joyEnd);
+let lookId=null,lastX=0,lastY=0;const look=$('look');
+look.addEventListener('pointerdown',e=>{lookId=e.pointerId;lastX=e.clientX;lastY=e.clientY;look.setPointerCapture(e.pointerId)});
+look.addEventListener('pointermove',e=>{if(e.pointerId!==lookId)return;let dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;yaw-=dx*.005;pitch=Math.max(-1.35,Math.min(1.35,pitch-dy*.005))});
+look.addEventListener('pointerup',()=>lookId=null);look.addEventListener('pointercancel',()=>lookId=null);
+// Player capsule-like AABB collision against voxel blocks. Movement is resolved per axis for wall sliding.
+const R=.29,HEIGHT=1.7,FOOT=.5;
+function collides(px,pz){
+ const minX=Math.floor(px-R+.5),maxX=Math.floor(px+R+.5),minZ=Math.floor(pz-R+.5),maxZ=Math.floor(pz+R+.5);
+ const minY=Math.floor(FOOT+.5),maxY=Math.floor(FOOT+HEIGHT-.02+.5);
+ for(let x=minX;x<=maxX;x++)for(let z=minZ;z<=maxZ;z++)for(let y=minY;y<=maxY;y++){
+  if(occupied.has(key(x,y,z)) && Math.abs(px-x)<R+.5 && Math.abs(pz-z)<R+.5)return true;
+ }
+ return false;
+}
+function move(){
+ if(!started)return;
+ const fwd=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
+ const v=fwd.multiplyScalar(-moveY).add(right.multiplyScalar(moveX));
+ if(v.lengthSq()>0){v.normalize().multiplyScalar(.105);let nx=player.x+v.x;if(!collides(nx,player.z))player.x=nx;let nz=player.z+v.z;if(!collides(player.x,nz))player.z=nz;}
+ // Keep the player grounded on the flat world floor.
+ player.y=2.15;
+}
+function hit(){const r=new THREE.Raycaster();r.setFromCamera(new THREE.Vector2(0,0),camera);return r.intersectObjects(blocks,false).find(h=>h.distance<6)}
+$('break').onclick=()=>{const h=hit();if(h&&h.object.position.y>0)removeBlock(h.object)};
+$('place').onclick=()=>{const h=hit();if(!h)return;const p=h.object.position.clone().add(h.face.normal);const x=Math.round(p.x),y=Math.round(p.y),z=Math.round(p.z);if(Math.hypot(player.x-x,player.z-z)>0.85&&y>=1)addBlock(x,y,z,selected)};
+$('next').onclick=()=>{selected=(selected+1)%names.length;$('next').textContent='بلوک: '+names[selected]};
+})();
+</script>
+</body></html>
