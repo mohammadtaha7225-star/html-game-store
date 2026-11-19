@@ -3,6 +3,7 @@ plugins { id 'com.android.application' }
 android {
     namespace 'com.gamestore.app'
     compileSdk 35
+
     defaultConfig {
         applicationId 'com.gamestore.app'
         minSdk 23
@@ -10,4 +11,20 @@ android {
         versionCode 1
         versionName '1.0'
     }
+
+    flavorDimensions += 'edition'
+    productFlavors {
+        store {
+            dimension 'edition'
+            applicationIdSuffix '.store'
+            buildConfigField 'String', 'START_URL', '"https://mohammadtaha7225-star.github.io/html-game-store/"'
+        }
+        admin {
+            dimension 'edition'
+            applicationIdSuffix '.admin'
+            buildConfigField 'String', 'START_URL', '"https://mohammadtaha7225-star.github.io/html-game-store/admin.html"'
+        }
+    }
+
+    buildFeatures { buildConfig true }
 }
