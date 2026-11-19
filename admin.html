@@ -39,7 +39,7 @@ a{color:#c4b5fd}.danger{background:#991b1b}.secondary{background:#334155}.succes
 </section>
 
 <section class="card">
-<div class="topline"><h2>۳. بازی‌های منتشرشده</h2><button type="button" id="reload" class="secondary">↻ بارگذاری دوباره</button></div>
+<div class="topline"><h2>۳. بازی‌های منتشرشده</h2><div><button type="button" id="reload" class="secondary">↻ بارگذاری دوباره</button><button type="button" id="cleanupOrphans" class="danger">🧹 پاک‌سازی فایل‌های قدیمی</button></div></div>
 <p class="hint">برای تغییر نام و توضیحات «ویرایش» را بزن. برای جایگزین کردن فایل بازی، هنگام ویرایش فایل HTML جدید را هم انتخاب کن.</p>
 <div id="games"><p class="muted">برای دیدن بازی‌ها، توکن را وارد کن و «بارگذاری دوباره» را بزن.</p></div>
 </section>
@@ -86,22 +86,61 @@ function startEdit(id){
  const g=gamesCache.find(x=>x.id===id);if(!g)return;editingId=id;$("title").value=g.title||"";$("description").value=g.description||"";$("game").value="";$("publish").textContent="💾 ذخیره تغییرات";say("در حال ویرایش: "+(g.title||id)+". اگر فایل HTML جدید انتخاب نکنی، فایل فعلی دست‌نخورده می‌ماند.");window.scrollTo({top:0,behavior:"smooth"});
 }
 async function deleteRemoteFile(path){
- if(!path)return;try{const f=await api(path);await api(path,"DELETE",{message:"حذف فایل بازی از پنل مدیریت",sha:f.sha,branch:BRANCH});}catch(e){if(e.status!==404)throw e;}
+ if(!path)return;
+ const clean=String(path).replace(/^\\/+|^\\.\\//g,"");
+ if(clean.includes(".."))throw Error("مسیر فایل نامعتبر است.");
+ try{
+  const f=await api(clean);
+  await api(clean,"DELETE",{message:"حذف فایل بازی از پنل مدیریت",sha:f.sha,branch:BRANCH});
+ }catch(e){if(e.status!==404)throw e;}
+}
+async function listFilesRecursive(dir){
+ let entries;
+ try{entries=await api(dir);}catch(e){if(e.status===404)return [];throw e;}
+ if(!Array.isArray(entries))return [];
+ const found=[];
+ for(const item of entries){
+  if(item.type==="file")found.push(item.path);
+  else if(item.type==="dir")found.push(...await listFilesRecursive(item.path));
+ }
+ return found;
+}
+async function cleanupOrphans(){
+ if(!confirm("فایل‌های بازی قدیمی که در فهرست فروشگاه ثبت نیستند و تصاویر جلد بلااستفاده از مخزن حذف شوند؟ بازی‌های ثبت‌شده حفظ می‌شوند."))return;
+ setBusy(true);$("cleanupOrphans").disabled=true;
+ try{
+  const db=await readDB();
+  const usedGames=new Set(db.games.map(g=>String(g.path||g.url||"").replace(/^\\/+|^\\.\\//g,"")).filter(Boolean));
+  const usedImages=new Set(db.games.map(g=>String(g.image||"").replace(/^\\/+|^\\.\\//g,"")).filter(Boolean));
+  const [gameFiles,imageFiles]=await Promise.all([listFilesRecursive("games"),listFilesRecursive("images")]);
+  const staleGames=gameFiles.filter(p=>p.split("/").pop().toLowerCase()==="index.html"&&!usedGames.has(p));
+  const staleImages=imageFiles.filter(p=>!usedImages.has(p));
+  const stale=[...staleGames,...staleImages];
+  if(!stale.length){say("✅ فایل بازی یا تصویر جلد قدیمیِ بدون استفاده پیدا نشد.");return;}
+  say("تعداد "+stale.length+" فایل قدیمی پیدا شد؛ در حال حذف…");
+  let removed=0,failed=[];
+  for(const path of stale){try{await deleteRemoteFile(path);removed++;}catch(e){failed.push(path+" — "+e.message);}}
+  await loadGames();
+  say("پاک‌سازی تمام شد. فایل‌های حذف‌شده: "+removed+(failed.length?"\\nموفق به حذف نشد: "+failed.join("\\n"):""));
+ }catch(e){say("❌ پاک‌سازی انجام نشد: "+e.message);}
+ finally{setBusy(false);$("cleanupOrphans").disabled=false;}
 }
 async function deleteGame(id){
  const g=gamesCache.find(x=>x.id===id);if(!g)return;
- if(!confirm("بازی «"+(g.title||id)+"» و فایل آن حذف شود؟ این کار قابل بازگشت از داخل پنل نیست."))return;
+ if(!confirm("بازی «"+(g.title||id)+"» و فایل آن از مخزن حذف شود؟ این کار قابل بازگشت از داخل پنل نیست."))return;
  setBusy(true);
  try{
-  const db=await readDB();db.games=db.games.filter(x=>x.id!==id);await saveDB(db,"حذف بازی "+(g.title||id));
-  let warning="";
-  try{await deleteRemoteFile(g.path||g.url);}catch(e){warning="\nهشدار: فایل بازی از مخزن پاک نشد: "+e.message;}
-  if(g.image){try{await deleteRemoteFile(g.image);}catch(e){warning+="\nتصویر قدیمی هم پاک نشد: "+e.message;}}
-  await loadGames();say("بازی از فهرست فروشگاه حذف شد."+warning);
- }catch(e){say("❌ حذف کامل نشد: "+e.message);}
+  const db=await readDB(),current=db.games.find(x=>x.id===id);
+  if(!current)throw Error("بازی دیگر در دیتابیس وجود ندارد؛ فهرست را دوباره بارگذاری کن.");
+  const paths=[current.path||current.url,current.image].filter(Boolean);
+  for(const path of paths)await deleteRemoteFile(path);
+  db.games=db.games.filter(x=>x.id!==id);
+  await saveDB(db,"حذف بازی "+(g.title||id));
+  await loadGames();say("✅ بازی از فهرست و فایل‌های مخزن حذف شد. پوشهٔ خالی نیز به‌صورت خودکار از GitHub ناپدید می‌شود.");
+ }catch(e){say("❌ حذف کامل نشد: "+e.message+"\\nاگر فایل حذف شده ولی رکورد باقی مانده، فهرست را دوباره بارگذاری کن.");}
  finally{setBusy(false);}
 }
-$("reload").addEventListener("click",loadGames);
+$("reload").addEventListener("click",loadGames);\n$("cleanupOrphans").addEventListener("click",cleanupOrphans);
 $("publish").addEventListener("click",async()=>{
  const btn=$("publish");btn.disabled=true;
  try{
