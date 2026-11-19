@@ -5,141 +5,126 @@
 <meta name="theme-color" content="#111827"><title>مدیریت فروشگاه HTML</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#0b1020;color:#f8fafc;font-family:Tahoma,Arial,sans-serif;line-height:1.9}
-header{padding:25px 18px;background:linear-gradient(135deg,#312e81,#0f172a)}main{max-width:760px;margin:auto;padding:18px}
+header{padding:24px 18px;background:linear-gradient(135deg,#312e81,#0f172a)}main{max-width:820px;margin:auto;padding:18px}
 h1{font-size:24px;margin:0}p{color:#cbd5e1}.card{background:#151d31;border:1px solid #334155;border-radius:16px;padding:18px;margin:16px 0}
 label{display:block;margin:12px 0 5px;font-weight:bold}input,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid #475569;background:#0b1222;color:white;font:inherit}
-input[type=file]{padding:9px}button{border:0;border-radius:10px;padding:12px 17px;background:#7c3aed;color:white;font-weight:bold;font:inherit;cursor:pointer;width:100%;margin-top:14px}
-button:disabled{opacity:.55}.muted{font-size:13px;color:#94a3b8}.status{padding:12px;background:#111827;border:1px solid #334155;border-radius:12px;white-space:pre-wrap;margin-top:12px}
-a{color:#c4b5fd}.danger{color:#fca5a5}.hint{font-size:13px;color:#cbd5e1}
+input[type=checkbox]{width:auto}button{border:0;border-radius:10px;padding:11px 15px;background:#7c3aed;color:white;font-weight:bold;font:inherit;cursor:pointer;margin:5px 3px 0 0}
+button:disabled{opacity:.55;cursor:wait}.muted,.hint{font-size:13px;color:#94a3b8}.status{padding:12px;background:#111827;border:1px solid #334155;border-radius:12px;white-space:pre-wrap;margin-top:12px}
+a{color:#c4b5fd}.danger{background:#991b1b}.secondary{background:#334155}.success{background:#166534}
+.game{padding:13px;border:1px solid #334155;border-radius:12px;margin:10px 0;background:#0f172a}.game h3{margin:0 0 5px}.game p{margin:4px 0}.actions{display:flex;gap:7px;flex-wrap:wrap}.actions button{flex:1;min-width:100px}
+#editArea[hidden]{display:none}.topline{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 </style></head>
 <body>
-<header><main><h1>🛠️ پنل مدیریت فروشگاه</h1><p>بازی HTML را از گوشی انتخاب کن و به فروشگاه اضافه کن.</p></main></header>
+<header><main><h1>🛠️ پنل مدیریت فروشگاه</h1><p>انتشار، ویرایش، بروزرسانی و حذف بازی‌ها</p></main></header>
 <main>
 <section class="card">
 <h2>۱. اتصال به GitHub</h2>
-<p class="hint">توکن فقط روی همین گوشی و در حافظه مرورگر ذخیره می‌شود، اگر گزینه ذخیره را فعال کنی. آن را در فایل‌های عمومی مخزن قرار نمی‌دهیم.</p>
-<label for="token">توکن GitHub</label><input id="token" type="password" autocomplete="off" placeholder="github_pat_..."><label style="display:flex;align-items:center;gap:9px;font-weight:normal"><input id="rememberToken" type="checkbox" style="width:auto"> ذخیره توکن در همین گوشی</label><button type="button" id="clearToken" style="background:#334155">پاک کردن توکن ذخیره‌شده</button><p class="hint">این روش راحت‌تر است، اما اگر کسی به گوشی یا مرورگر بازشده‌ات دسترسی پیدا کند ممکن است به توکن هم دسترسی پیدا کند. روی گوشی مشترک فعالش نکن.</p>
-<p class="hint">توکن Fine-grained بساز و فقط دسترسی Contents را روی Read and write برای مخزن html-game-store فعال کن.</p>
+<p class="hint">توکن فقط در همین مرورگر استفاده می‌شود. ذخیره آن اختیاری است؛ روی گوشی مشترک ذخیره نکن.</p>
+<label for="token">توکن GitHub</label><input id="token" type="password" autocomplete="off" placeholder="github_pat_...">
+<label style="display:flex;align-items:center;gap:9px;font-weight:normal"><input id="rememberToken" type="checkbox"> ذخیره توکن در همین گوشی</label>
+<button type="button" id="clearToken" class="secondary">پاک کردن توکن ذخیره‌شده</button>
+<p class="hint">توکن Fine-grained با دسترسی Contents روی Read and write برای مخزن html-game-store لازم است.</p>
 <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">ساخت توکن در GitHub</a>
 </section>
+
 <section class="card">
-<h2>۲. مشخصات بازی</h2>
+<div class="topline"><h2>۲. افزودن بازی جدید</h2><button type="button" id="resetForm" class="secondary">پاک کردن فرم ↻</button></div>
 <label for="title">نام بازی</label><input id="title" maxlength="70" placeholder="مثلاً ماشین‌سواری سه‌بعدی">
 <label for="description">توضیحات بازی</label><textarea id="description" rows="3" maxlength="250" placeholder="چند کلمه درباره بازی بنویس"></textarea>
 <label for="game">فایل بازی (فقط HTML)</label><input id="game" type="file" accept=".html,text/html">
-<p class="muted">فعلاً نسخه اول پنل فقط بازی تک‌فایلی HTML را پشتیبانی می‌کند. حجم پیشنهادی کمتر از ۲۰ مگابایت است.</p>
-<label for="cover">تصویر جلد (اختیاری)</label><input id="cover" type="file" accept="image/png,image/jpeg,image/webp">
-<button id="publish">🚀 انتشار بازی در فروشگاه</button>
-<div id="status" class="status">آماده انتشار بازی هستیم.</div>
+<p class="muted">فقط بازی تک‌فایلی HTML پشتیبانی می‌شود. تصویر جلد لازم نیست و دیگر آپلود تصویر نداریم.</p>
+<button id="publish">🚀 انتشار بازی</button>
+<div id="status" class="status">برای شروع، توکن GitHub را وارد کن.</div>
 </section>
+
 <section class="card">
-<h2>راهنما</h2>
-<p>بعد از انتشار موفق، بازی در فروشگاه اصلی نمایش داده می‌شود. ممکن است به‌روزرسانی صفحه فروشگاه چند دقیقه طول بکشد.</p>
-<a href="./">بازگشت به فروشگاه اصلی</a>
+<div class="topline"><h2>۳. بازی‌های منتشرشده</h2><button type="button" id="reload" class="secondary">↻ بارگذاری دوباره</button></div>
+<p class="hint">برای تغییر نام و توضیحات «ویرایش» را بزن. برای جایگزین کردن فایل بازی، هنگام ویرایش فایل HTML جدید را هم انتخاب کن.</p>
+<div id="games"><p class="muted">برای دیدن بازی‌ها، توکن را وارد کن و «بارگذاری دوباره» را بزن.</p></div>
 </section>
+<section class="card"><a href="./">بازگشت به فروشگاه اصلی</a></section>
 </main>
 <script>
-const OWNER="mohammadtaha7225-star", REPO="html-game-store", BRANCH="main";
-const $=id=>document.getElementById(id), status=$("status"), button=$("publish");
-function say(s){status.textContent=s}
-const TOKEN_KEY="htmlGameStorePublisherToken";
-try{
- const saved=localStorage.getItem(TOKEN_KEY);
- if(saved){$("token").value=saved;$("rememberToken").checked=true;}
-}catch(e){}
-$("rememberToken").addEventListener("change",()=>{
- try{
-  if($("rememberToken").checked){
-   const value=$("token").value.trim();
-   if(!value){$("rememberToken").checked=false;say("اول توکن را وارد کن، بعد گزینه ذخیره را فعال کن.");return;}
-   localStorage.setItem(TOKEN_KEY,value);
-   say("توکن روی همین گوشی ذخیره شد.");
-  }else{
-   localStorage.removeItem(TOKEN_KEY);
-   say("ذخیره توکن خاموش شد و توکن ذخیره‌شده پاک شد.");
-  }
- }catch(e){$("rememberToken").checked=false;say("مرورگر اجازه ذخیره‌سازی نداد.");}
-});
-$("token").addEventListener("input",()=>{
- if($("rememberToken").checked){
-  try{localStorage.setItem(TOKEN_KEY,$("token").value.trim());}catch(e){}
- }
-});
-$("clearToken").addEventListener("click",()=>{
- try{localStorage.removeItem(TOKEN_KEY);}catch(e){}
- $("token").value="";$("rememberToken").checked=false;
- say("توکن ذخیره‌شده از این گوشی پاک شد.");
-});
-function slug(s){return s.toLowerCase().trim().replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-|-$/g,"").slice(0,45)||"game"}
-function bytesToBase64(bytes){let binary="";const step=0x8000;for(let i=0;i<bytes.length;i+=step)binary+=String.fromCharCode(...bytes.subarray(i,i+step));return btoa(binary)}
+const OWNER="mohammadtaha7225-star",REPO="html-game-store",BRANCH="main";
+const $=id=>document.getElementById(id),TOKEN_KEY="htmlGameStorePublisherToken";
+let gamesCache=[],editingId=null,dbSha=null;
+function say(s){$("status").textContent=s}
+function setBusy(b){$("publish").disabled=b;$("reload").disabled=b}
+try{const saved=localStorage.getItem(TOKEN_KEY);if(saved){$("token").value=saved;$("rememberToken").checked=true;}}catch(e){}
+$("rememberToken").addEventListener("change",()=>{try{if($("rememberToken").checked){if(!$("token").value.trim()){ $("rememberToken").checked=false;say("اول توکن را وارد کن.");return;}localStorage.setItem(TOKEN_KEY,$("token").value.trim());say("توکن در همین گوشی ذخیره شد.");}else{localStorage.removeItem(TOKEN_KEY);say("ذخیره توکن خاموش شد.");}}catch(e){say("ذخیره‌سازی در این مرورگر ممکن نیست.");}});
+$("token").addEventListener("input",()=>{if($("rememberToken").checked){try{localStorage.setItem(TOKEN_KEY,$("token").value.trim());}catch(e){}}});
+$("clearToken").addEventListener("click",()=>{try{localStorage.removeItem(TOKEN_KEY);}catch(e){}$("token").value="";$("rememberToken").checked=false;say("توکن ذخیره‌شده پاک شد.");});
+$("resetForm").addEventListener("click",resetForm);
+function resetForm(){ $("title").value="";$("description").value="";$("game").value="";editingId=null;$("publish").textContent="🚀 انتشار بازی";say("فرم کاملاً پاک شد؛ می‌توانی بازی جدیدی وارد کنی.");}
+function encPath(path){return path.split("/").map(encodeURIComponent).join("/");}
 async function api(path,method="GET",body=null){
  const token=$("token").value.trim();if(!token)throw Error("اول توکن GitHub را وارد کن.");
- const url="https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/"+path+(method==="GET"?"?ref="+BRANCH+"&nocache="+Date.now():"");
- const res=await fetch(url,{
-  method,cache:method==="GET"?"no-store":"no-cache",
-  headers:{"Accept":"application/vnd.github+json","Authorization":"Bearer "+token,"X-GitHub-Api-Version":"2022-11-28","Content-Type":"application/json","Cache-Control":"no-cache","Pragma":"no-cache"},
-  body:body?JSON.stringify(body):undefined
- });
- const data=await res.json().catch(()=>({}));
- if(!res.ok)throw Error(data.message||("خطای GitHub: "+res.status));
- return data;
+ const url="https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/"+encPath(path)+(method==="GET"?"?ref="+BRANCH+"&nocache="+Date.now():"");
+ const res=await fetch(url,{method,cache:"no-store",headers:{"Accept":"application/vnd.github+json","Authorization":"Bearer "+token,"X-GitHub-Api-Version":"2022-11-28","Content-Type":"application/json"},body:body?JSON.stringify(body):undefined});
+ const data=await res.json().catch(()=>({}));if(!res.ok){const err=Error(data.message||("خطای GitHub: "+res.status));err.status=res.status;throw err;}return data;
 }
-async function putFile(path,content,message,sha){
- const body={message,content,branch:BRANCH};if(sha)body.sha=sha;
- return api(path,"PUT",body);
+function b64(bytes){let s="";for(let i=0;i<bytes.length;i+=0x8000)s+=String.fromCharCode(...bytes.subarray(i,i+0x8000));return btoa(s);}
+function fromB64(s){const raw=atob(s.replace(/\n/g,""));return new TextDecoder().decode(Uint8Array.from(raw,c=>c.charCodeAt(0)));}
+async function readDB(){const f=await api("database/games.json");dbSha=f.sha;const db=JSON.parse(fromB64(f.content));db.games=Array.isArray(db.games)?db.games:[];return db;}
+async function saveDB(db,message){const body={message,content:b64(new TextEncoder().encode(JSON.stringify(db,null,2))),branch:BRANCH};if(dbSha)body.sha=dbSha;const out=await api("database/games.json","PUT",body);dbSha=out.content.sha;return out;}
+async function putFile(path,bytes,message,sha){const body={message,content:b64(bytes),branch:BRANCH};if(sha)body.sha=sha;return api(path,"PUT",body);}
+function slug(s){return s.toLowerCase().trim().replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-|-$/g,"").slice(0,45)||"game";}
+function safe(s){return String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+async function loadGames(){
+ try{say("در حال دریافت فهرست بازی‌ها…");const db=await readDB();gamesCache=db.games;renderGames();say("فهرست بازی‌ها بارگذاری شد.");}
+ catch(e){say("❌ دریافت بازی‌ها ناموفق بود: "+e.message);}
 }
-$("publish").addEventListener("click",async()=>{
- button.disabled=true;
+function renderGames(){
+ const root=$("games");if(!gamesCache.length){root.innerHTML='<p class="muted">هنوز بازی‌ای ثبت نشده است.</p>';return;}
+ root.innerHTML=gamesCache.map(g=>'<div class="game"><h3>'+safe(g.title||g.id)+'</h3><p>'+safe(g.description||"بدون توضیحات")+'</p><p class="muted">شناسه: '+safe(g.id)+'</p><div class="actions"><button type="button" data-edit="'+safe(g.id)+'">✏️ ویرایش / بروزرسانی</button><button type="button" class="danger" data-delete="'+safe(g.id)+'">🗑️ حذف بازی</button></div></div>').join("");
+ root.querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",()=>startEdit(b.dataset.edit)));
+ root.querySelectorAll("[data-delete]").forEach(b=>b.addEventListener("click",()=>deleteGame(b.dataset.delete)));
+}
+function startEdit(id){
+ const g=gamesCache.find(x=>x.id===id);if(!g)return;editingId=id;$("title").value=g.title||"";$("description").value=g.description||"";$("game").value="";$("publish").textContent="💾 ذخیره تغییرات";say("در حال ویرایش: "+(g.title||id)+". اگر فایل HTML جدید انتخاب نکنی، فایل فعلی دست‌نخورده می‌ماند.");window.scrollTo({top:0,behavior:"smooth"});
+}
+async function deleteRemoteFile(path){
+ if(!path)return;try{const f=await api(path);await api(path,"DELETE",{message:"حذف فایل بازی از پنل مدیریت",sha:f.sha,branch:BRANCH});}catch(e){if(e.status!==404)throw e;}
+}
+async function deleteGame(id){
+ const g=gamesCache.find(x=>x.id===id);if(!g)return;
+ if(!confirm("بازی «"+(g.title||id)+"» و فایل آن حذف شود؟ این کار قابل بازگشت از داخل پنل نیست."))return;
+ setBusy(true);
  try{
-  const title=$("title").value.trim(),description=$("description").value.trim(),game=$("game").files[0],cover=$("cover").files[0];
+  const db=await readDB();db.games=db.games.filter(x=>x.id!==id);await saveDB(db,"حذف بازی "+(g.title||id));
+  let warning="";
+  try{await deleteRemoteFile(g.path||g.url);}catch(e){warning="\nهشدار: فایل بازی از مخزن پاک نشد: "+e.message;}
+  if(g.image){try{await deleteRemoteFile(g.image);}catch(e){warning+="\nتصویر قدیمی هم پاک نشد: "+e.message;}}
+  await loadGames();say("بازی از فهرست فروشگاه حذف شد."+warning);
+ }catch(e){say("❌ حذف کامل نشد: "+e.message);}
+ finally{setBusy(false);}
+}
+$("reload").addEventListener("click",loadGames);
+$("publish").addEventListener("click",async()=>{
+ const btn=$("publish");btn.disabled=true;
+ try{
+  const title=$("title").value.trim(),description=$("description").value.trim(),file=$("game").files[0];
   if(!title)throw Error("نام بازی را وارد کن.");
-  if(!game)throw Error("فایل HTML بازی را انتخاب کن.");
-  if(!game.name.toLowerCase().endsWith(".html"))throw Error("فعلاً فقط فایل با پسوند .html قابل قبول است.");
-  if(game.size>20*1024*1024)throw Error("حجم فایل بیشتر از ۲۰ مگابایت است؛ فعلاً فایل کوچک‌تری انتخاب کن.");
-  const id=slug(title)+"-"+Date.now().toString().slice(-6);
-  say("در حال آماده‌سازی فایل بازی…");
-  const gameBytes=new Uint8Array(await game.arrayBuffer());
-  const gamePath="games/"+id+"/index.html";
-  await putFile(gamePath,bytesToBase64(gameBytes),"افزودن بازی "+title);
-  let imagePath="";
-  if(cover){
-   say("فایل بازی ثبت شد؛ در حال بارگذاری تصویر جلد…");
-   const ext=(cover.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
-   imagePath="images/"+id+"."+ext;
-   await putFile(imagePath,bytesToBase64(new Uint8Array(await cover.arrayBuffer())),"افزودن تصویر بازی "+title);
+  if(file&&!file.name.toLowerCase().endsWith(".html"))throw Error("فقط فایل با پسوند HTML قابل قبول است.");
+  if(file&&file.size>20*1024*1024)throw Error("حجم فایل بیشتر از ۲۰ مگابایت است.");
+  if(!editingId&&!file)throw Error("برای بازی جدید فایل HTML را انتخاب کن.");
+  const db=await readDB();
+  if(editingId){
+   const g=db.games.find(x=>x.id===editingId);if(!g)throw Error("این بازی در فهرست پیدا نشد؛ فهرست را دوباره بارگذاری کن.");
+   if(file){say("در حال جایگزینی فایل بازی…");const oldFile=await api(g.path||g.url);await putFile(g.path||g.url,new Uint8Array(await file.arrayBuffer()),"بروزرسانی فایل بازی "+title,oldFile.sha);}
+   g.title=title;g.description=description;
+   await saveDB(db,"ویرایش بازی "+title);
+   say("✅ تغییرات بازی ذخیره شد."+(file?" فایل HTML هم بروزرسانی شد.":""));
+   editingId=null;resetForm();await loadGames();
+  }else{
+   const id=slug(title)+"-"+Date.now().toString().slice(-6),path="games/"+id+"/index.html";
+   say("در حال بارگذاری فایل بازی…");await putFile(path,new Uint8Array(await file.arrayBuffer()),"افزودن بازی "+title);
+   db.games.push({id,title,description,path,url:path});
+   try{await saveDB(db,"انتشار بازی "+title);}catch(e){say("فایل بازی آپلود شد اما ثبت در فهرست ناموفق بود. دوباره تلاش کن؛ فایل در مسیر "+path+" باقی مانده است.");throw e;}
+   say("✅ بازی با موفقیت منتشر شد: "+title);resetForm();await loadGames();
   }
-  say("فایل‌ها آپلود شدند؛ در حال به‌روزرسانی فهرست فروشگاه…");
-  // برای جلوگیری از خطای SHA، فهرست را درست پیش از هر تلاش دوباره از GitHub می‌خوانیم.
-  let saved=false,lastError=null;
-  for(let attempt=1;attempt<=3&&!saved;attempt++){
-   let db={version:1,games:[]},sha=null;
-   try{
-    const current=await api("database/games.json");
-    sha=current.sha;
-    const raw=atob(current.content.replace(/\n/g,""));
-    const bytes=Uint8Array.from(raw,c=>c.charCodeAt(0));
-    db=JSON.parse(new TextDecoder().decode(bytes));
-   }catch(e){
-    if(!String(e.message).includes("Not Found"))throw e;
-   }
-   db.games=Array.isArray(db.games)?db.games:[];
-   if(!db.games.some(g=>g.id===id)){
-    db.games.push({id,title,description,path:gamePath,url:gamePath,...(imagePath?{image:imagePath}:{})});
-   }
-   try{
-    await putFile("database/games.json",bytesToBase64(new TextEncoder().encode(JSON.stringify(db,null,2))),"انتشار بازی "+title,sha);
-    saved=true;
-   }catch(e){
-    lastError=e;
-    const msg=String(e.message).toLowerCase();
-    if(!(msg.includes("does not match")||msg.includes("sha")||msg.includes("409")||msg.includes("422"))||attempt===3)throw e;
-    await new Promise(resolve=>setTimeout(resolve,700*attempt));
-   }
-  }
-  if(!saved)throw lastError||Error("ذخیره فهرست بازی‌ها انجام نشد.");
-  say("✅ بازی با موفقیت منتشر شد!\nنام: "+title+"\nاکنون فروشگاه را باز کن و صفحه را تازه‌سازی کن.\n\nاگر بازی بلافاصله دیده نشد، چند دقیقه صبر کن.");
- }catch(e){say("❌ "+e.message+"\n\nاگر خطای 401 یا 403 دیدی، دسترسی توکن را بررسی کن. اگر خطای 409 دیدی، دوباره تلاش کن.");}
- finally{button.disabled=false;}
+ }catch(e){say("❌ "+e.message+"\nاگر خطای 401 یا 403 دیدی، دسترسی توکن را بررسی کن.");}
+ finally{btn.disabled=false;}
 });
-</script>
-</body></html>
+if($("token").value.trim())loadGames();
+</script></body></html>
