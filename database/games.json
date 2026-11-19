@@ -2,13 +2,6 @@
   "version": 1,
   "games": [
     {
-      "id": "هزارتو-000999",
-      "title": "هزارتو",
-      "description": "دتنالخعتلتلناماان",
-      "path": "games/هزارتو-000999/index.html",
-      "url": "games/هزارتو-000999/index.html"
-    },
-    {
       "id": "بازی-266064",
       "title": "بازی",
       "description": "ختااا",
