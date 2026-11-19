@@ -14,7 +14,7 @@ import android.net.Uri;
 
 public class MainActivity extends Activity {
     private WebView web;
-    private static final String HOME = "https://mohammadtaha7225-star.github.io/html-game-store/";
+    private static final String HOME = BuildConfig.START_URL;
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         getWindow().getDecorView().setSystemUiVisibility(5894 | View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
